@@ -47,6 +47,7 @@ kotlin {
             implementation(libs.androidx.activity.compose)
 
             implementation(libs.ktor.client.android)
+            implementation("io.ktor:ktor-client-okhttp:3.0.1")
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -63,15 +64,22 @@ kotlin {
             implementation(libs.coil.network.ktor)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.json)
+
+            implementation("com.squareup.okio:okio:3.9.0")
+            implementation("io.github.kdroidfilter:composemediaplayer:0.8.6")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+        }
+        iosMain.dependencies {
+            implementation("io.ktor:ktor-client-darwin:3.0.1")
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
 
             implementation(libs.ktor.client.java)
+            implementation("io.ktor:ktor-client-okhttp:3.0.1")
         }
     }
 }
