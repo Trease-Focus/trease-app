@@ -13,8 +13,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import neth.iecal.trease.api.TreeRepository
 import neth.iecal.trease.models.TreeUiState
+import neth.iecal.trease.utils.CacheManager
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -22,10 +26,19 @@ fun TreeBottomSheet(onDismiss: () -> Unit,onSelected: (String) -> Unit) {
     var uiState by remember { mutableStateOf<TreeUiState>(TreeUiState.Loading) }
 
     LaunchedEffect(Unit) {
-        uiState = try {
-            TreeUiState.Success(TreeRepository.fetchTrees())
+        val cacheManager = CacheManager()
+        val cache = cacheManager.readFile("tree.json")
+        if(cache!=null) {
+            uiState = TreeUiState.Success(
+                Json.decodeFromString(cache)
+            )
+        }
+         try {
+            val trees = TreeRepository.fetchTrees()
+            uiState = TreeUiState.Success(trees)
+            cacheManager.saveFile("tree.json",Json.encodeToString(trees))
         } catch (e: Exception) {
-            TreeUiState.Error("Failed to load trees")
+            uiState = TreeUiState.Error("Failed to load trees $e")
         }
     }
 

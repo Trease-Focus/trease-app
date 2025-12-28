@@ -21,9 +21,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import io.github.kdroidfilter.composemediaplayer.rememberVideoPlayerState
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import neth.iecal.trease.PlatformVideoPlayer
-import neth.iecal.trease.utils.VideoCacheManager
+import neth.iecal.trease.utils.CacheManager
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
 import neth.iecal.trease.viewmodels.TimerStatus
 
@@ -67,9 +66,8 @@ fun TreeGrowthPlayer(
         label = "GlowAlpha"
     )
 
-    // --- VIDEO CONTROL LOGIC ---
     LaunchedEffect(selectedTreeId, selectedMinutes) {
-        val cacheManager = VideoCacheManager()
+        val cacheManager = CacheManager()
         val remoteUrl = "https://trease-focus.github.io/cache-trees/video/$selectedTreeId.webm"
 
         try {

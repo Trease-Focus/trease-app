@@ -67,6 +67,8 @@ kotlin {
 
             implementation("com.squareup.okio:okio:3.9.0")
             implementation("io.github.kdroidfilter:composemediaplayer:0.8.6")
+
+            implementation(project.dependencies.platform("io.github.jan-tennert.supabase:bom:3.2.6"))
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -103,6 +105,7 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
