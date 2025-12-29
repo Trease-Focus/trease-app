@@ -2,14 +2,18 @@ package neth.iecal.trease.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import neth.iecal.trease.models.FocusStats
+import neth.iecal.trease.models.TimerStatus
+import neth.iecal.trease.utils.TreeStatsLodger
 
-enum class TimerStatus { Idle, Running }
 
 class HomeScreenViewModel : ViewModel() {
     private var timerJob: Job? = null
@@ -31,6 +35,8 @@ class HomeScreenViewModel : ViewModel() {
 
     var selectedTree = MutableStateFlow("tree")
 
+    var viewModelCoroutineScope = CoroutineScope(Dispatchers.Default)
+    val treeStatsLodger = TreeStatsLodger()
     fun adjustTime(amount: Long) {
         if (_timerStatus.value == TimerStatus.Idle) {
             val newMinutes = (_selectedMinutes.value + amount).coerceIn(1, 120)
@@ -40,13 +46,23 @@ class HomeScreenViewModel : ViewModel() {
         }
     }
 
+    fun selectTree(treeId:String){
+        _timerStatus.value = TimerStatus.Idle
+        selectedTree.value = treeId
+    }
+    fun setTimeStatus(status:TimerStatus){
+        _timerStatus.value = status
+    }
     fun toggleIsTreeSelectionVisible() {
         _isTreeSelectionVisible.value = !_isTreeSelectionVisible.value
     }
     fun toggleTimer() {
-        if (_timerStatus.value == TimerStatus.Idle) {
+        if (_timerStatus.value != TimerStatus.Running) {
+            // start a new timer only if not running
             startTimer()
-        } else {
+        } else{
+            // stop the timer as user quit
+            _timerStatus.value = TimerStatus.HAS_QUIT
             stopTimer()
         }
     }
@@ -62,18 +78,32 @@ class HomeScreenViewModel : ViewModel() {
                 _remainingSeconds.value -= 1
                 _progress.value = _remainingSeconds.value.toFloat() / initialSecondsAtStart.toFloat()
             }
-            _timerStatus.value = TimerStatus.Idle
+            stopTimer()
+            _timerStatus.value = TimerStatus.HAS_WON
         }
     }
 
     private fun stopTimer() {
         timerJob?.cancel()
-        _timerStatus.value = TimerStatus.Idle
+        viewModelCoroutineScope.launch {
+            treeStatsLodger.appendStats(
+                FocusStats(
+                    remainingSeconds.value,
+                    selectedTree.value,
+                    timerStatus.value == TimerStatus.HAS_QUIT
+                )
+            )
+        }
+
+
+    }
+    fun cleanTimerSession(){
+        _timerStatus.value = if(_timerStatus.value == TimerStatus.HAS_QUIT)
+            TimerStatus.POST_QUIT else TimerStatus.POST_WIN
         _remainingSeconds.value = _selectedMinutes.value * 60L
         _progress.value = 1f
     }
 
-    // FIXED: Clean Kotlin formatting without using String.format factory
     fun formatTime(seconds: Long): String {
         val m = seconds / 60
         val s = seconds % 60

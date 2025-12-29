@@ -13,8 +13,10 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -22,9 +24,10 @@ import coil3.compose.AsyncImage
 import io.github.kdroidfilter.composemediaplayer.rememberVideoPlayerState
 import kotlinx.coroutines.delay
 import neth.iecal.trease.PlatformVideoPlayer
+import neth.iecal.trease.models.TimerStatus
 import neth.iecal.trease.utils.CacheManager
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
-import neth.iecal.trease.viewmodels.TimerStatus
+
 
 private data class PlayerState(
     val status: TimerStatus,
@@ -32,14 +35,15 @@ private data class PlayerState(
 )
 @Composable
 fun TreeGrowthPlayer(
-    timerViewModel: HomeScreenViewModel
+    viewModel: HomeScreenViewModel,
+    scale: Float,
 ) {
     var isReady by remember { mutableStateOf(false) }
     val statePlayer = rememberVideoPlayerState()
-    val crntStatus by timerViewModel.timerStatus.collectAsStateWithLifecycle()
+    val crntStatus by viewModel.timerStatus.collectAsStateWithLifecycle()
 
-    val selectedTreeId by timerViewModel.selectedTree.collectAsStateWithLifecycle()
-    val selectedMinutes by timerViewModel.selectedMinutes.collectAsStateWithLifecycle()
+    val selectedTreeId by viewModel.selectedTree.collectAsStateWithLifecycle()
+    val selectedMinutes by viewModel.selectedMinutes.collectAsStateWithLifecycle()
 
     val combinedState = remember(crntStatus, selectedTreeId) {
         PlayerState(crntStatus, selectedTreeId)
@@ -95,7 +99,7 @@ fun TreeGrowthPlayer(
     }
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().scale(scale),
         contentAlignment = Alignment.Center
     ) {
         AnimatedContent(
@@ -107,26 +111,6 @@ fun TreeGrowthPlayer(
             label = "StateTransition"
         ) { status ->
             when (status.status) {
-                TimerStatus.Idle -> {
-                    Box(Modifier.fillMaxSize()) {
-                        AsyncImage(
-                            model = "https://trease-focus.github.io/cache-trees/images/${status.treeId}_grid.png",
-                            contentDescription = status.treeId,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-
-                        if (!isReady) {
-                            CircularProgressIndicator(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .align(Alignment.Center),
-                                color = Color.White.copy(alpha = 0.7f)
-                            )
-                        }
-                    }
-                }
-
                 TimerStatus.Running -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         PlatformVideoPlayer(
@@ -151,6 +135,37 @@ fun TreeGrowthPlayer(
                         }
                     }
                 }
+
+                TimerStatus.POST_QUIT, TimerStatus.HAS_QUIT -> {
+                    AsyncImage(
+                        model = "https://trease-focus.github.io/cache-trees/images/weathered_grid.png",
+                        contentDescription = status.treeId,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                        filterQuality = FilterQuality.High
+                    )
+                }
+                else -> {
+                    Box(Modifier.fillMaxSize()) {
+                        AsyncImage(
+                            model = "https://trease-focus.github.io/cache-trees/images/${status.treeId}_grid.png",
+                            contentDescription = status.treeId,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                            filterQuality = FilterQuality.High
+                        )
+
+                        if (!isReady) {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .align(Alignment.Center),
+                                color = Color.White.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                }
+
             }
         }
     }
