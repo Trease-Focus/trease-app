@@ -16,7 +16,8 @@ class GardenViewModel(): ViewModel() {
     private val _treeList = MutableStateFlow(listOf<String>())
     val treeList: StateFlow<List<String>> = _treeList.asStateFlow()
 
-    var stats = listOf<FocusStats>()
+    private val _stats = MutableStateFlow( listOf<FocusStats>())
+    val stats : StateFlow<List<FocusStats>> = _stats.asStateFlow()
     val treeStatsLodger = TreeStatsLodger()
     val viewModelScope: CoroutineScope = MainScope()
     init {
@@ -25,14 +26,14 @@ class GardenViewModel(): ViewModel() {
 
     fun updateTreeStats(){
         viewModelScope.launch(Dispatchers.Default) {
-            stats = treeStatsLodger.getCache()
-            println("Loaded ${stats} tree stats")
+            _stats.value = treeStatsLodger.getCache()
+            println("Loaded ${stats.value} tree stats")
             addTreeFromStats()
         }
     }
     private fun addTreeFromStats(){
         val temp = mutableListOf<String>()
-        stats.forEach {
+        stats.value.forEach {
             if(it.isFailed) {
                 temp.add(it.failureTree)
             }else{

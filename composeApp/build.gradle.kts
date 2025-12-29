@@ -69,6 +69,7 @@ kotlin {
             implementation("io.github.kdroidfilter:composemediaplayer:0.8.6")
 
             implementation(project.dependencies.platform("io.github.jan-tennert.supabase:bom:3.2.6"))
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

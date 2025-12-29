@@ -42,16 +42,6 @@ fun HomeScreen(navController: NavHostController) {
     var isShowQuitWarningDialog by remember { mutableStateOf(false) }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = {},
-                actions = {
-                    TextButton(onClick = { navController.navigate(Garden) }) {
-                        Text("Tree")
-                    }
-                }
-            )
-        }
     ) { paddingValues ->
 
         if (isTreeSelectionVisible) {
@@ -64,114 +54,127 @@ fun HomeScreen(navController: NavHostController) {
             )
         }
 
-        Column(
-            verticalArrangement = Arrangement.Center,
-        ) {
+        Box(Modifier.fillMaxSize()) {
+            TopAppBar(
+                modifier = Modifier.align(Alignment.TopCenter),
+                title = {},
+                actions = {
+                    TextButton(onClick = { navController.navigate(Garden) }) {
+                        Text("Tree")
+                    }
+                }
+            )
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 16.dp)
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
+                Modifier.align(Alignment.Center),
+                verticalArrangement = Arrangement.Center,
             ) {
-                Text(
-                    text = viewModel.formatTime(remainingSeconds),
-                    fontSize = 100.sp,
-                    fontWeight = FontWeight.Light,
-                    letterSpacing = 2.sp,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Box(
+                Column(
                     modifier = Modifier
-                        .size(280.dp)
-                        .combinedClickable(
-                            enabled = true,
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = ripple(false,),
-                            onClick = { viewModel.toggleIsTreeSelectionVisible() }
-                        ),
-                    contentAlignment = Alignment.Center
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(horizontal = 16.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
                 ) {
-                    TreeGrowthPlayer(viewModel, 1.2f)
-                }
+                    Text(
+                        text = viewModel.formatTime(remainingSeconds),
+                        fontSize = 100.sp,
+                        fontWeight = FontWeight.Light,
+                        letterSpacing = 2.sp,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                LinearProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier
-                        .width(280.dp)
-                        .height(2.dp)
-                        .padding(top = 8.dp),
-                    trackColor = MaterialTheme.colorScheme.onPrimary,
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "He who conquers himself is\nthe mightiest warrior",
-                    textAlign = TextAlign.Center,
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
-
-
-                if (isShowQuitWarningDialog) {
-                    WarningBeforeQuit(
-                        viewModel, onDismissed = {
-                            isShowQuitWarningDialog = false
-                        },
-                        onQuitConfirmed = {
-                            viewModel.toggleTimer() // quits the timer and sets status to has_quit
-                        })
-                }
-
-                if (status == TimerStatus.HAS_QUIT) {
-                    YouLost(viewModel)
-                }
-                if (status == TimerStatus.HAS_WON) {
-                    YouWon(viewModel)
-                }
-
-                when (status) {
-                    TimerStatus.Running -> {
-                        TextButton(
-                            onClick = {
-                                isShowQuitWarningDialog = true
-                            }
-                        ) {
-                            Text("Give up", color = MaterialTheme.colorScheme.error.copy(alpha = 0.7f))
-                        }
+                    Box(
+                        modifier = Modifier
+                            .size(280.dp)
+                            .combinedClickable(
+                                enabled = true,
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = ripple(false,),
+                                onClick = { viewModel.toggleIsTreeSelectionVisible() }
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        TreeGrowthPlayer(viewModel, 1.2f)
                     }
-                    else -> {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-                            modifier = Modifier.fillMaxWidth(0.7f)
-                        ) {
-                            OutlinedButton(onClick = { viewModel.adjustTime(-5) }) {
-                                Text("−5", fontSize = 18.sp)
-                            }
 
-                            Button(
-                                onClick = { viewModel.toggleTimer() },
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier
+                            .width(280.dp)
+                            .height(2.dp)
+                            .padding(top = 8.dp),
+                        trackColor = MaterialTheme.colorScheme.onPrimary,
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "He who conquers himself is\nthe mightiest warrior",
+                        textAlign = TextAlign.Center,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+
+
+                    if (isShowQuitWarningDialog) {
+                        WarningBeforeQuit(
+                            viewModel, onDismissed = {
+                                isShowQuitWarningDialog = false
+                            },
+                            onQuitConfirmed = {
+                                viewModel.toggleTimer() // quits the timer and sets status to has_quit
+                            })
+                    }
+
+                    if (status == TimerStatus.HAS_QUIT) {
+                        YouLost(viewModel)
+                    }
+                    if (status == TimerStatus.HAS_WON) {
+                        YouWon(viewModel)
+                    }
+
+                    when (status) {
+                        TimerStatus.Running -> {
+                            TextButton(
+                                onClick = {
+                                    isShowQuitWarningDialog = true
+                                }
                             ) {
-                                Text("Start")
-                            }
-
-                            OutlinedButton(onClick = { viewModel.adjustTime(5) }) {
-                                Text("+5", fontSize = 18.sp)
+                                Text("Give up", color = MaterialTheme.colorScheme.error.copy(alpha = 0.7f))
                             }
                         }
+
+                        else -> {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                                modifier = Modifier.fillMaxWidth(0.7f)
+                            ) {
+                                OutlinedButton(onClick = { viewModel.adjustTime(-5) }) {
+                                    Text("−5", fontSize = 18.sp)
+                                }
+
+                                Button(
+                                    onClick = { viewModel.toggleTimer() },
+                                ) {
+                                    Text("Start")
+                                }
+
+                                OutlinedButton(onClick = { viewModel.adjustTime(5) }) {
+                                    Text("+5", fontSize = 18.sp)
+                                }
+                            }
+                        }
+
+
                     }
 
-
                 }
-
             }
         }
     }

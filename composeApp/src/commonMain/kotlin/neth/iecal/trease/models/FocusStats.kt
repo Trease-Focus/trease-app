@@ -8,9 +8,11 @@ import kotlin.uuid.Uuid
 
 @Serializable
 data class FocusStats @OptIn(ExperimentalUuidApi::class) constructor(
-    val duration: Long = Clock.System.now().toEpochMilliseconds(),
+    val duration:Long, // in seconds
     val treeId: String,
     val isFailed: Boolean,
     val failureTree: String = "weathered",
     val id:String = Uuid.generateV7().toString(),
+    val completedOn: Long = Clock.System.now().toEpochMilliseconds(),
+
 )
