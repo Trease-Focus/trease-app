@@ -1,7 +1,15 @@
 package neth.iecal.trease.utils
 
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format
+import kotlinx.datetime.format.DateTimeFormat
+import kotlinx.datetime.format.Padding
+import kotlinx.datetime.format.char
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 import kotlin.time.Instant
 
 fun Long.getDayLabel(): String {
@@ -13,8 +21,38 @@ fun Long.getDayLabel(): String {
         .replaceFirstChar { it.uppercase() }
 }
 
+fun Long.getDate(): String {
+    val date = Instant.fromEpochMilliseconds(this)
+        .toLocalDateTime(TimeZone.currentSystemDefault())
+
+    return date.format(
+        LocalDateTime.Format {
+            day(padding = Padding.ZERO)
+            char('/')
+            monthNumber(padding = Padding.ZERO)
+            char('/')
+            yearTwoDigits(baseYear = 2000)
+        }
+    )
+}
+
+fun Long.toLocalDate(): LocalDate =
+    Instant.fromEpochMilliseconds(this)
+        .toLocalDateTime(TimeZone.currentSystemDefault())
+        .date
+
 fun Long.getHourOfDay(): Int {
     return Instant.fromEpochMilliseconds(this)
         .toLocalDateTime(TimeZone.currentSystemDefault())
         .hour
+}
+
+
+fun getCurrentMonthYear(): String {
+    val currentMoment = Clock.System.now()
+    val datetime = currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
+
+    val isoFormat = "${datetime.year}-${datetime.month.number.toString().padStart(2, '0')}"
+
+    return isoFormat
 }

@@ -24,21 +24,20 @@ import kotlin.math.ceil
 import kotlin.math.min
 import kotlin.math.sqrt
 
-// --- Configuration ---
-// Identical constants to the Node.js script
+
 const val SCALE = 4f
 const val TILE_WIDTH = 100f * SCALE
 const val TILE_HEIGHT = TILE_WIDTH / 2f
 const val SOURCE_ANCHOR_Y_OFFSET = (150f * SCALE) + (TILE_WIDTH / 4f)
 
-data class PlacedTree(
+private data class PlacedTree(
     val id: String,
     val image: ImageBitmap,
     val drawX: Float,
     val drawY: Float
 )
 
-data class ForestLayout(
+private data class ForestLayout(
     val trees: List<PlacedTree>,
     val totalWidth: Float,
     val totalHeight: Float
@@ -48,21 +47,17 @@ data class ForestLayout(
 fun IsometricForest(treeIds: List<String>) {
     val context = LocalPlatformContext.current
 
-    // State to hold the calculated forest
     var forestLayout by remember { mutableStateOf<ForestLayout?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
-    // Logic: Load & Calculate Positions (Background Thread)
     LaunchedEffect(treeIds) {
         isLoading = true
 
         forestLayout = withContext(Dispatchers.Default) {
             if (treeIds.isEmpty()) return@withContext null
 
-            // 1. Calculate Grid Dimensions
             val gridSize = ceil(sqrt(treeIds.size.toDouble())).toInt()
 
-            // 2. Load Images Parallel
             val imageLoader = ImageLoader(context)
 
             val deferredLoad = treeIds.mapIndexed { index, id ->
@@ -91,7 +86,7 @@ fun IsometricForest(treeIds: List<String>) {
 
             val results = deferredLoad.awaitAll().filterNotNull()
 
-            // 3. Sort by Depth (Painter's Algorithm)
+            // Sort by Depth (Painter's Algorithm)
             val sortedResults = results.sortedWith(Comparator { a, b ->
                 val (posA, _) = a
                 val (posB, _) = b
@@ -101,7 +96,6 @@ fun IsometricForest(treeIds: List<String>) {
                 if (depthA != depthB) depthA - depthB else posA.first - posB.first
             })
 
-            // 4. Calculate Canvas Bounds (Virtual Size)
             val isoWidth = (gridSize * 2) * (TILE_WIDTH / 2f)
             val isoHeight = gridSize * TILE_HEIGHT
 
@@ -113,7 +107,7 @@ fun IsometricForest(treeIds: List<String>) {
             val originX = totalWidth / 2f
             val originY = 150f * SCALE
 
-            // 5. Create PlacedTree objects with exact coordinates
+            // Create PlacedTree objects with exact coordinates
             val placements = sortedResults.map { (pos, bitmap, id) ->
                 val (gridX, gridY) = pos
 
@@ -141,7 +135,6 @@ fun IsometricForest(treeIds: List<String>) {
         isLoading = false
     }
 
-    // --- Rendering ---
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         if (isLoading) {
             CircularProgressIndicator()
@@ -153,33 +146,28 @@ fun IsometricForest(treeIds: List<String>) {
                     val screenHeight = constraints.maxHeight.toFloat()
 
                     Canvas(modifier = Modifier.fillMaxSize()) {
-                        // 1. Calculate Scale to Fit
-                        // We want the whole 'layout.totalWidth' to fit inside 'screenWidth' (and same for height)
+                        // Calculate Scale to Fit
                         val scaleX = screenWidth / layout.totalWidth
                         val scaleY = screenHeight / layout.totalHeight
 
                         // Use the smaller scale to ensure it fits both dimensions (Fit Center)
                         val scale = min(scaleX, scaleY)
 
-                        // 2. Calculate Centering Offsets
-                        // How much empty space is left?
+                        // Calculate Centering Offsets
                         val usedWidth = layout.totalWidth * scale
                         val usedHeight = layout.totalHeight * scale
 
                         val translateX = (screenWidth - usedWidth) / 2f
                         val translateY = (screenHeight - usedHeight) / 2f
 
-                        // 3. Apply Transform and Draw
                         withTransform({
                             translate(left = translateX, top = translateY)
-                            // We must define both scaleX and scaleY explicitly
                             scale(
                                 scaleX = scale,
                                 scaleY = scale,
                                 pivot = Offset.Zero
                             )
                         }) {
-                            // "Very efficient": No math here, just drawing pre-calc coordinates
                             layout.trees.forEach { tree ->
                                 drawImage(
                                     image = tree.image,

@@ -88,7 +88,7 @@ class HomeScreenViewModel : ViewModel() {
         viewModelCoroutineScope.launch {
             treeStatsLodger.appendStats(
                 FocusStats(
-                    remainingSeconds.value,
+                    selectedMinutes.value*60,
                     selectedTree.value,
                     timerStatus.value == TimerStatus.HAS_QUIT
                 )

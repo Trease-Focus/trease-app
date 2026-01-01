@@ -8,7 +8,7 @@ class TreeStatsLodger {
     val cacheManager = CacheManager()
 
     suspend fun appendStats(focusStats: FocusStats) {
-        val statsRaw = cacheManager.readFile("stats.json")
+        val statsRaw = cacheManager.readFile("${getCurrentMonthYear()}.json")
         val stats = if(statsRaw != null) {
              Json.decodeFromString<MutableList<FocusStats>>(statsRaw)
         } else {
@@ -17,11 +17,12 @@ class TreeStatsLodger {
         stats.add(focusStats)
 
         val encoded = Json.encodeToString(stats)
-        cacheManager.saveFile("stats.json", encoded)
+        cacheManager.saveFile("${getCurrentMonthYear()}.json", encoded)
     }
 
-    suspend fun getCache():List<FocusStats> {
-        val statsRaw = cacheManager.readFile("stats.json")
+    suspend fun getCache(date:String = getCurrentMonthYear()):List<FocusStats> {
+
+        val statsRaw = cacheManager.readFile("$date.json")
         val stats = if(statsRaw != null) {
             Json.decodeFromString<List<FocusStats>>(statsRaw)
         } else listOf()

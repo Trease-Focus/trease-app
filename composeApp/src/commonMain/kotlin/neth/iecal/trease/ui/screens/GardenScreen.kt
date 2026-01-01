@@ -1,7 +1,14 @@
 package neth.iecal.trease.ui.screens
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -12,12 +19,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -25,24 +28,39 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.*
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.number
 import neth.iecal.trease.models.FocusStats
+import neth.iecal.trease.ui.components.stats.EfficiencyDonutChart
+import neth.iecal.trease.ui.components.stats.HourlyFocusChart
 import neth.iecal.trease.ui.components.IsometricForest
-import neth.iecal.trease.utils.getDayLabel
-import neth.iecal.trease.utils.getHourOfDay
+import neth.iecal.trease.ui.components.stats.WeeklyActivityChart
 import neth.iecal.trease.viewmodels.GardenViewModel
+import org.jetbrains.compose.resources.painterResource
+import trease.composeapp.generated.resources.Res
+import trease.composeapp.generated.resources.outline_arrow_back_ios_24
+import trease.composeapp.generated.resources.outline_arrow_forward_ios_24
 import kotlin.math.round
 import kotlin.math.roundToInt
-import kotlin.time.Instant
 
 @Composable
 fun GardenScreen(navController: NavHostController) {
     val viewModel = viewModel { GardenViewModel() }
 
-    // 1. Load Data
+    var selectedDate by remember {
+        mutableStateOf(Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date)
+    }
+
+    LaunchedEffect(selectedDate) {
+        val isoFormat = "${selectedDate.year}-${selectedDate.month.number.toString().padStart(2, '0')}"
+        viewModel.updateTreeStats(isoFormat)
+    }
+
     val statsList by viewModel.stats.collectAsStateWithLifecycle()
     val treeIds by viewModel.treeList.collectAsStateWithLifecycle()
+    val streak by viewModel.streak.collectAsStateWithLifecycle()
+    val totalFocus by viewModel.totalFocus.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -55,23 +73,26 @@ fun GardenScreen(navController: NavHostController) {
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
-            // Header
-            HeaderSection(treeIds)
+            HeaderSection(
+                treeIds = treeIds,
+                currentDate = selectedDate,
+                onMonthChange = { newDate -> selectedDate = newDate }
+            )
 
-            KeyMetricsRow(statsList)
+            KeyMetricsRow(totalFocus,streak)
 
             StatsCard(
                 title = "Focus History",
                 subtitle = "Last 7 sessions by duration (minutes)"
             ) {
-                ActivityBarChart(statsList)
+                WeeklyActivityChart(statsList)
             }
 
             StatsCard(
                 title = "Peak Productivity",
                 subtitle = "When you are most active"
             ) {
-                TimeOfDayChart(statsList)
+                HourlyFocusChart(statsList)
             }
 
             SecondaryMetricsGrid(statsList)
@@ -89,7 +110,11 @@ fun GardenScreen(navController: NavHostController) {
 }
 
 @Composable
-fun HeaderSection(treeIds: List<String>) {
+fun HeaderSection(
+    treeIds: List<String>,
+    currentDate: LocalDate,
+    onMonthChange: (LocalDate) -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -101,28 +126,95 @@ fun HeaderSection(treeIds: List<String>) {
         ) {
             IsometricForest(treeIds)
         }
-        Text(
-            text = "Your Garden", // Dynamic month could go here
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight = FontWeight.Black,
-                letterSpacing = (-1).sp
-            ),
-            color = MaterialTheme.colorScheme.onSurface
+
+        MonthSelector(
+            currentDate = currentDate,
+            onMonthChange = onMonthChange
         )
     }
 }
 
 @Composable
-fun KeyMetricsRow(stats: List<FocusStats>) {
-    val totalSeconds = remember(stats) { stats.sumOf { it.duration } }
-    val totalHours = (totalSeconds / 3600.0).toFloat()
-
-    //Calculate Streak (consecutive days)
-    // This is a simplified streak calculation for the UI demo
-    val streak = remember(stats) {
-        if (stats.isEmpty()) 0 else 1
+fun MonthSelector(
+    currentDate: LocalDate,
+    onMonthChange: (LocalDate) -> Unit
+) {
+    fun changeMonth(monthsToAdd: Int) {
+        onMonthChange(currentDate.plus(DatePeriod(months = monthsToAdd)))
     }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        // Previous Month Button
+        IconButton(onClick = { changeMonth(-1) }) {
+            Icon(
+                painter = painterResource(Res.drawable.outline_arrow_back_ios_24),
+                contentDescription = "Previous Month",
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .width(200.dp)
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures { change, dragAmount ->
+                        change.consume()
+                        if (dragAmount < -20) {
+                            changeMonth(1)
+                        } else if (dragAmount > 20) {
+                            changeMonth(-1)
+                        }
+                    }
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            AnimatedContent(
+                targetState = currentDate,
+                transitionSpec = {
+                    if (targetState > initialState) {
+                        (slideInHorizontally { width -> width } + fadeIn()).togetherWith(
+                            slideOutHorizontally { width -> -width } + fadeOut())
+                    } else {
+                        (slideInHorizontally { width -> -width } + fadeIn()).togetherWith(
+                            slideOutHorizontally { width -> width } + fadeOut())
+                    }.using(SizeTransform(clip = false))
+                },
+                label = "Month Animation"
+            ) { date ->
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = date.month.name.lowercase().replaceFirstChar { it.uppercase() },
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = (-0.5).sp
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+
+        // Next Month Button
+        IconButton(onClick = { changeMonth(1) }) {
+            Icon(
+                painter = painterResource(Res.drawable.outline_arrow_forward_ios_24),
+                contentDescription = "Previous Month",
+                tint = MaterialTheme.colorScheme.primary
+            )
+
+        }
+    }
+}
+
+@Composable
+private fun KeyMetricsRow(totalMins: Int, streak:Int) {
 
     Row(
         modifier = Modifier
@@ -133,8 +225,8 @@ fun KeyMetricsRow(stats: List<FocusStats>) {
         MetricCard(
             modifier = Modifier.weight(1f),
             label = "Total Focus",
-            value = (round(totalHours * 10) / 10).toString(),
-            subValue = "hours",
+            value = (totalMins).toString(),
+            subValue = "mins",
             iconColor = MaterialTheme.colorScheme.primary
         )
         MetricCard(
@@ -148,15 +240,17 @@ fun KeyMetricsRow(stats: List<FocusStats>) {
 }
 
 @Composable
-fun SecondaryMetricsGrid(stats: List<FocusStats>) {
-    val validStats = stats.filter { !it.isFailed }
+private fun SecondaryMetricsGrid(
+    stats: List<FocusStats>,
+) {
+    val validStats = remember(stats) { stats.filter { !it.isFailed } }
 
     val avgDuration = if (validStats.isNotEmpty()) {
-        (validStats.map { it.duration }.average() / 60).roundToInt()
+        (validStats.map { it.duration }.average() / 60.0).roundToInt()
     } else 0
 
     val longestSession = if (validStats.isNotEmpty()) {
-        (validStats.maxOf { it.duration } / 60).toInt()
+        (validStats.maxOf { it.duration } / 60.0).roundToInt()
     } else 0
 
     Row(
@@ -182,9 +276,8 @@ fun SecondaryMetricsGrid(stats: List<FocusStats>) {
         )
     }
 }
-
 @Composable
-fun MetricCard(modifier: Modifier = Modifier, label: String, value: String, subValue: String, iconColor: Color) {
+private fun MetricCard(modifier: Modifier = Modifier, label: String, value: String, subValue: String, iconColor: Color) {
     Surface(
         modifier = modifier.height(110.dp),
         shape = RoundedCornerShape(28.dp),
@@ -222,7 +315,7 @@ fun MetricCard(modifier: Modifier = Modifier, label: String, value: String, subV
 }
 
 @Composable
-fun MiniMetricCard(modifier: Modifier = Modifier, label: String, value: String) {
+private fun MiniMetricCard(modifier: Modifier = Modifier, label: String, value: String) {
     Surface(
         modifier = modifier.height(90.dp),
         shape = RoundedCornerShape(20.dp),
@@ -248,7 +341,7 @@ fun MiniMetricCard(modifier: Modifier = Modifier, label: String, value: String) 
 }
 
 @Composable
-fun StatsCard(title: String, subtitle: String? = null, content: @Composable BoxScope.() -> Unit) {
+private fun StatsCard(title: String, subtitle: String? = null, content: @Composable BoxScope.() -> Unit) {
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(start = 8.dp, bottom = 12.dp),
@@ -283,200 +376,5 @@ fun StatsCard(title: String, subtitle: String? = null, content: @Composable BoxS
     }
 }
 
-// --- Component: History Graph ---
-@Composable
-fun ActivityBarChart(allStats: List<FocusStats>) {
-    // Take last 7 items for the graph
-    val recentStats = remember(allStats) { allStats.sortedBy { it.completedOn }.takeLast(7) }
 
-    if (recentStats.isEmpty()) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Complete a session to see history", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        return
-    }
 
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val failColor = MaterialTheme.colorScheme.error
-    val trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
-    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
-
-    // Text configuration (simple size approximation for canvas)
-    val textPaint = MaterialTheme.typography.labelSmall
-
-    Column(Modifier.fillMaxSize()) {
-        // The Graph
-        Canvas(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            val maxDuration = recentStats.maxOfOrNull { it.duration }?.toFloat() ?: 1f
-            // Add 10% headroom
-            val displayMax = maxDuration * 1.1f
-
-            val barWidth = size.width / (recentStats.size * 2 + 1) // Dynamic width
-            val spacing = size.width / recentStats.size
-
-            recentStats.forEachIndexed { index, stat ->
-                val xOffset = (spacing * index) + (spacing / 2) - (barWidth / 2)
-
-                // Calculate height based on Seconds
-                val barHeight = (stat.duration / displayMax) * size.height
-
-                // 1. Draw Track (Background)
-                drawRoundRect(
-                    color = trackColor.copy(alpha = 0.5f),
-                    topLeft = Offset(xOffset, 0f),
-                    size = Size(barWidth, size.height),
-                    cornerRadius = CornerRadius(barWidth / 2)
-                )
-
-                // 2. Draw Active Bar
-                drawRoundRect(
-                    color = if (stat.isFailed) failColor.copy(alpha = 0.8f) else primaryColor,
-                    topLeft = Offset(xOffset, size.height - barHeight),
-                    size = Size(barWidth, barHeight),
-                    cornerRadius = CornerRadius(barWidth / 2)
-                )
-            }
-        }
-
-        // The X-Axis Labels (Outside Canvas for easier Layout)
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            recentStats.forEach { stat ->
-                Text(
-                    text = stat.completedOn.getDayLabel(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = labelColor
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun TimeOfDayChart(stats: List<FocusStats>) {
-    // Morning: 5-11, Afternoon: 12-17, Evening: 18-4
-    val distribution = remember(stats) {
-        val counts = mutableMapOf("Morning" to 0, "Afternoon" to 0, "Evening" to 0)
-        stats.forEach {
-            val hour = it.completedOn.getHourOfDay()
-            when (hour) {
-                in 5..11 -> counts["Morning"] = counts["Morning"]!! + 1
-                in 12..17 -> counts["Afternoon"] = counts["Afternoon"]!! + 1
-                else -> counts["Evening"] = counts["Evening"]!! + 1
-            }
-        }
-        val total = stats.size.toFloat().coerceAtLeast(1f)
-        counts.mapValues { it.value / total }
-    }
-
-    if (stats.isEmpty()) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No data yet", style = MaterialTheme.typography.bodyMedium)
-        }
-        return
-    }
-
-    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceEvenly) {
-        TimeDistributionRow("Morning", distribution["Morning"] ?: 0f, MaterialTheme.colorScheme.secondary)
-        TimeDistributionRow("Afternoon", distribution["Afternoon"] ?: 0f, MaterialTheme.colorScheme.primary)
-        TimeDistributionRow("Evening", distribution["Evening"] ?: 0f, MaterialTheme.colorScheme.tertiary)
-    }
-}
-
-@Composable
-fun TimeDistributionRow(label: String, percentage: Float, color: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = label,
-            modifier = Modifier.width(70.dp),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(12.dp)
-                .clip(RoundedCornerShape(6.dp))
-                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(percentage)
-                    .fillMaxHeight()
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(color)
-            )
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = "${(percentage * 100).toInt()}%",
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.width(35.dp),
-            textAlign = TextAlign.End
-        )
-    }
-}
-
-// --- Component: Efficiency Donut (Reused & Updated) ---
-@Composable
-fun EfficiencyDonutChart(stats: List<FocusStats>) {
-    val total = stats.size
-    val failed = stats.count { it.isFailed }
-    val success = total - failed
-
-    val successColor = MaterialTheme.colorScheme.primary
-    val failColor = MaterialTheme.colorScheme.error
-    val emptyColor = MaterialTheme.colorScheme.surfaceContainerHigh
-
-    if (total == 0) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Start planting to see health", style = MaterialTheme.typography.bodyMedium)
-        }
-        return
-    }
-
-    Row(
-        modifier = Modifier.fillMaxSize(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(modifier = Modifier.size(120.dp), contentAlignment = Alignment.Center) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val strokeWidth = 16.dp.toPx()
-                val radius = size.minDimension / 2 - strokeWidth / 2
-
-                drawCircle(color = emptyColor, radius = radius, style = Stroke(width = strokeWidth))
-
-                val successSweep = (success.toFloat() / total) * 360f
-                drawArc(
-                    color = successColor,
-                    startAngle = -90f,
-                    sweepAngle = successSweep,
-                    useCenter = false,
-                    style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
-                )
-            }
-            Text(
-                text = "${((success.toFloat()/total)*100).toInt()}%",
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
-            )
-        }
-
-        Spacer(modifier = Modifier.width(24.dp))
-
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            MetricLegendItem(color = successColor, text = "Thriving ($success)")
-            MetricLegendItem(color = failColor, text = "Withered ($failed)")
-        }
-    }
-}
-
-@Composable
-fun MetricLegendItem(color: Color, text: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(color))
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
-    }
-}

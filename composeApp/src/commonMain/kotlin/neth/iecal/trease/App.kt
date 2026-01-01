@@ -6,7 +6,7 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.serialization.Serializable
 import neth.iecal.trease.ui.screens.GardenScreen
 import neth.iecal.trease.ui.screens.HomeScreen
-import neth.iecal.trease.ui.theme.ZenTheme
+import neth.iecal.trease.ui.theme.MainTheme
 
 @Serializable
 data object Home
@@ -16,7 +16,7 @@ data object Garden
 @Composable
 fun App() {
     val navController = rememberNavController()
-    ZenTheme() {
+    MainTheme() {
         NavHost(navController = navController, startDestination = Home) {
             composable<Home> {
                 HomeScreen(navController)
