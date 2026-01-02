@@ -26,6 +26,7 @@ import kotlinx.coroutines.delay
 import neth.iecal.trease.PlatformVideoPlayer
 import neth.iecal.trease.models.TimerStatus
 import neth.iecal.trease.utils.CacheManager
+import neth.iecal.trease.utils.getCachedVideoPath
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
 
 
@@ -71,11 +72,10 @@ fun TreeGrowthPlayer(
     )
 
     LaunchedEffect(selectedTreeId, selectedMinutes) {
-        val cacheManager = CacheManager()
         val remoteUrl = "https://trease-focus.github.io/cache-trees/video/$selectedTreeId.webm"
 
         try {
-            val localPath = cacheManager.getCachedVideoPath(remoteUrl, selectedTreeId)
+            val localPath = getCachedVideoPath(remoteUrl, selectedTreeId)
             statePlayer.openUri(localPath)
             isReady = true
 

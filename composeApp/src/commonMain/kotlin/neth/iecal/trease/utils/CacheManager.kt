@@ -16,69 +16,25 @@ import okio.use
 
 class CacheManager {
 
-    private val client = getPlatformHttpClient()
     private val fileSystem = getFileSystem()
-
-
-    suspend fun getCachedVideoPath(
-        url: String,
-        videoId: String
-    ): String {
-        val cachePath = getCacheDir().toPath()
-
-        if (!fileSystem.exists(cachePath)) {
-            fileSystem.createDirectories(cachePath)
-        }
-
-        val filePath = cachePath.resolve("$videoId.webm")
-
-        if (fileSystem.exists(filePath)) {
-            return filePath.toString()
-        }
-
-        try {
-            val response = client.get(url)
-            val channel = response.bodyAsChannel()
-
-            val sink = fileSystem.sink(filePath).buffer()
-
-            try {
-                while (!channel.isClosedForRead) {
-                    val packet = channel.readRemaining(8_192)
-                    while (!packet.isEmpty) {
-                        sink.write(packet.readBytes())
-                    }
-                }
-            } finally {
-                sink.flush()
-                sink.close()
-            }
-
-        } catch (e: Exception) {
-            if (fileSystem.exists(filePath)) {
-                fileSystem.delete(filePath)
-            }
-            throw e
-        }
-
-        return filePath.toString()
-    }
 
 
     suspend fun saveFile(
         fileName: String,
         content: String
     ) {
-        val cachePath = getCacheDir().toPath()
+        return withContext(Dispatchers.Main) {
+            val cachePath = getCacheDir().toPath()
 
-        if (!fileSystem.exists(cachePath)) {
-            fileSystem.createDirectories(cachePath)
-        }
+            if (!fileSystem.exists(cachePath)) {
+                fileSystem.createDirectories(cachePath)
+            }
 
-        val filePath = cachePath.resolve(fileName)
+            val filePath = cachePath.resolve(fileName)
 
-        fileSystem.sink(filePath).buffer().use { sink ->
-            sink.writeUtf8(content)
+            fileSystem.sink(filePath).buffer().use { sink ->
+                sink.writeUtf8(content)
+            }
         }
     }
 
