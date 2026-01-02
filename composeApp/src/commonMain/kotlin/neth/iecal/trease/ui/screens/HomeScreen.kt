@@ -14,10 +14,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key.Companion.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -28,17 +30,23 @@ import neth.iecal.trease.ui.components.TreeGrowthPlayer
 import neth.iecal.trease.ui.dialogs.WarningBeforeQuit
 import neth.iecal.trease.ui.dialogs.YouLost
 import neth.iecal.trease.ui.dialogs.YouWon
+import neth.iecal.trease.utils.CoinManager
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
+import org.jetbrains.compose.resources.painterResource
+import trease.composeapp.generated.resources.Res
+import trease.composeapp.generated.resources.baseline_apps_24
+import trease.composeapp.generated.resources.coin
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavHostController) {
     val viewModel = viewModel { HomeScreenViewModel() }
+    val coinsViewModel = viewModel { CoinManager() }
     val remainingSeconds by viewModel.remainingSeconds.collectAsStateWithLifecycle()
     val progress by viewModel.progress.collectAsStateWithLifecycle()
     val status by viewModel.timerStatus.collectAsStateWithLifecycle()
     val isTreeSelectionVisible by viewModel.isTreeSelectionVisible.collectAsStateWithLifecycle()
-
+    val coins by coinsViewModel.coins.collectAsStateWithLifecycle()
     var isShowQuitWarningDialog by remember { mutableStateOf(false) }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -56,12 +64,21 @@ fun HomeScreen(navController: NavHostController) {
 
         Box(Modifier.fillMaxSize()) {
             TopAppBar(
-                modifier = Modifier.align(Alignment.TopCenter),
+                modifier = Modifier.align(Alignment.TopCenter).zIndex(999f).padding(16.dp),
                 title = {},
                 actions = {
-                    TextButton(onClick = { navController.navigate(Garden) }) {
-                        Text("Tree")
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = { navController.navigate(Garden) }, Modifier.size(40.dp)) {
+                            Icon(
+                                painter = painterResource(Res.drawable.baseline_apps_24),
+                                contentDescription = "Garden",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Text("$coins Coins")
+
                     }
+
                 }
             )
             Column(
