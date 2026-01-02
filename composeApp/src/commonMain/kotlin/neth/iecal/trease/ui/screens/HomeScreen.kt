@@ -1,6 +1,7 @@
 package neth.iecal.trease.ui.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -23,7 +24,9 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import coil3.compose.AsyncImage
 import neth.iecal.trease.Garden
+import neth.iecal.trease.GardenFullScreen
 import neth.iecal.trease.models.TimerStatus
 import neth.iecal.trease.ui.bottomsheet.TreeBottomSheet
 import neth.iecal.trease.ui.components.TreeGrowthPlayer
@@ -36,6 +39,8 @@ import org.jetbrains.compose.resources.painterResource
 import trease.composeapp.generated.resources.Res
 import trease.composeapp.generated.resources.baseline_apps_24
 import trease.composeapp.generated.resources.coin
+import trease.composeapp.generated.resources.grid
+import trease.composeapp.generated.resources.stats
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +56,7 @@ fun HomeScreen(navController: NavHostController) {
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets.displayCutout
     ) { paddingValues ->
 
         if (isTreeSelectionVisible) {
@@ -65,18 +71,30 @@ fun HomeScreen(navController: NavHostController) {
 
         Box(Modifier.fillMaxSize()) {
             TopAppBar(
-                modifier = Modifier.align(Alignment.TopCenter).zIndex(999f).padding(16.dp),
+                modifier = Modifier.align(Alignment.TopCenter).zIndex(999f).padding(end = 16.dp),
                 title = {},
                 actions = {
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = { navController.navigate(Garden) }, Modifier.size(40.dp)) {
-                            Icon(
-                                painter = painterResource(Res.drawable.baseline_apps_24),
+                            Image(
+                                painter = painterResource(Res.drawable.stats),
                                 contentDescription = "Garden",
-                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
-                        Text("$coins Coins")
+                        IconButton(onClick = { navController.navigate(GardenFullScreen) }, Modifier.size(25.dp)) {
+                            Image(
+                                painter = painterResource(Res.drawable.grid),
+                                contentDescription = "Garden",
+                                Modifier.size(40.dp)
+                            )
+                        }
+                        Row {
+                            Image(
+                                painter = painterResource(Res.drawable.coin),
+                                contentDescription = "Garden",
+                            )
+                            Text(" $coins")
+                        }
 
                     }
 

@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -47,6 +48,7 @@ fun YouLost(viewModel: HomeScreenViewModel) {
         Dialog(onDismissRequest = { viewModel.cleanTimerSession() }) {
             Card(
                 shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface) ,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)

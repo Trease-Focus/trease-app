@@ -103,7 +103,6 @@ fun FullScreenGarden(navController: NavHostController) {
                         onClose = { showBottomLeft = false }
                     ) {
                         Column {
-                            Text("HISTORY", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(0.5f), fontSize = 8.sp)
                             Box(Modifier.weight(1f)) { WeeklyActivityChart(statsList) }
                         }
                     }
@@ -118,7 +117,6 @@ fun FullScreenGarden(navController: NavHostController) {
                         onClose = { showBottomRight = false }
                     ) {
                         Column {
-                            Text("PEAK TIME", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(0.5f), fontSize = 8.sp)
                             Box(Modifier.weight(1f)) { HourlyFocusChart(statsList) }
                         }
                     }
@@ -175,7 +173,7 @@ private fun GlassHudWidget(
                     .clickable { onClose() },
                 contentAlignment = Alignment.Center
             ) {
-                Text("X")
+                Text("x", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
             }
         }
     }
@@ -238,7 +236,7 @@ fun MiniMonthSelector(date: LocalDate, onMonthChange: (LocalDate) -> Unit) {
 
 @Composable
 fun MiniResourceCounter(focus: Int, streak: Int) {
-    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(16.dp,Alignment.CenterHorizontally)) {
         Column(horizontalAlignment = Alignment.End) {
             Text("$focus", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
             Text("min", style = MaterialTheme.typography.labelSmall, fontSize = 8.sp, color = MaterialTheme.colorScheme.primary)
@@ -246,7 +244,7 @@ fun MiniResourceCounter(focus: Int, streak: Int) {
         Box(Modifier.width(1.dp).height(24.dp).background(MaterialTheme.colorScheme.onSurface.copy(0.1f)))
         Column(horizontalAlignment = Alignment.End) {
             Text("$streak", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
-            Text("days", style = MaterialTheme.typography.labelSmall, fontSize = 8.sp, color = MaterialTheme.colorScheme.tertiary)
+            Text("streak", style = MaterialTheme.typography.labelSmall, fontSize = 8.sp, color = MaterialTheme.colorScheme.tertiary)
         }
     }
 }

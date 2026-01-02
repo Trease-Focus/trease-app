@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -39,6 +40,7 @@ import neth.iecal.trease.viewmodels.HomeScreenViewModel
 import org.jetbrains.compose.resources.painterResource
 import trease.composeapp.generated.resources.Res
 import trease.composeapp.generated.resources.outline_arrow_forward_ios_24
+import trease.composeapp.generated.resources.rounded_clock_loader_10_24
 
 @Composable
 fun WarningBeforeQuit(
@@ -85,11 +87,13 @@ fun WarningBeforeQuit(
                 ) {
                     WarningStatItem(
                         value = elapsedFormatted,
-                        label = "Focused"
+                        label = "Focused",
+                        painterResource(Res.drawable.rounded_clock_loader_10_24)
                     )
                     WarningStatItem(
                         value = "${goalFocus}m",
-                        label = "Goal"
+                        label = "Goal",
+                        painterResource(Res.drawable.rounded_clock_loader_10_24)
                     )
                 }
 
@@ -156,11 +160,12 @@ fun WarningBeforeQuit(
 @Composable
 private fun WarningStatItem(
     value: String,
-    label: String
+    label: String,
+    painter: Painter
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(
-            painter = painterResource( Res.drawable.outline_arrow_forward_ios_24),
+            painter = painter,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(20.dp)

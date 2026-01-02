@@ -9,17 +9,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import coil3.compose.AsyncImage
+import coil3.compose.ImagePainter
 import neth.iecal.trease.Constants
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
 import org.jetbrains.compose.resources.painterResource
 import trease.composeapp.generated.resources.Res
+import trease.composeapp.generated.resources.coin
+import trease.composeapp.generated.resources.grid
 import trease.composeapp.generated.resources.outline_arrow_forward_ios_24
+import trease.composeapp.generated.resources.rounded_clock_loader_10_24
 
 @Composable
 fun YouWon(viewModel: HomeScreenViewModel) {
@@ -32,6 +37,7 @@ fun YouWon(viewModel: HomeScreenViewModel) {
     Dialog(onDismissRequest = { viewModel.cleanTimerSession() }) {
         Card(
             shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface) ,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
@@ -41,7 +47,7 @@ fun YouWon(viewModel: HomeScreenViewModel) {
                     .padding(24.dp)
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // Header Section
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -76,7 +82,8 @@ fun YouWon(viewModel: HomeScreenViewModel) {
                 ) {
                     StatItem(
                         value = "${goalFocus}m",
-                        label = "Focus"
+                        label = "Focus",
+                        painter = painterResource(Res.drawable.rounded_clock_loader_10_24)
                     )
 
                     // Only show Rarity if it is actually Rare, otherwise show something else or center the others
@@ -84,14 +91,18 @@ fun YouWon(viewModel: HomeScreenViewModel) {
                         StatItem(
                             value = "Rare",
                             label = "Quality",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
+                            painter = painterResource(Res.drawable.grid)
+
                         )
                     }
 
                     StatItem(
                         value = "+$coins",
                         label = "Earned",
-                        tint = MaterialTheme.colorScheme.tertiary
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        painter = painterResource(Res.drawable.coin)
+
                     )
                 }
 
@@ -122,11 +133,12 @@ fun YouWon(viewModel: HomeScreenViewModel) {
 private fun StatItem(
     value: String,
     label: String,
-    tint: Color = MaterialTheme.colorScheme.onSurface
+    tint: Color = MaterialTheme.colorScheme.onSurface,
+    painter: Painter
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(
-            painter = painterResource(Res.drawable.outline_arrow_forward_ios_24),
+            painter = painter,
             contentDescription = label,
             tint = tint,
             modifier = Modifier.size(28.dp)
