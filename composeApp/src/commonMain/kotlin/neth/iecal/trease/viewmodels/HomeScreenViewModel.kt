@@ -5,15 +5,16 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import neth.iecal.trease.models.FocusStats
 import neth.iecal.trease.models.TimerStatus
 import neth.iecal.trease.models.TreeData
+import neth.iecal.trease.utils.CacheManager
 import neth.iecal.trease.utils.CoinManager
 import neth.iecal.trease.utils.TreeStatsLodger
 import neth.iecal.trease.utils.randomBiased
@@ -38,9 +39,13 @@ class HomeScreenViewModel : ViewModel() {
     private val _isTreeSelectionVisible : MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isTreeSelectionVisible = _isTreeSelectionVisible.asStateFlow()
 
+    private val _isWitheredTreeSelectionVisible : MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isWitheredTreeSelectionVisible = _isWitheredTreeSelectionVisible.asStateFlow()
+
+
     val coinManager = CoinManager()
     val coins = MutableStateFlow(0)
-
+    val selectedWitheredTree = MutableStateFlow<FocusStats?>(null)
     var selectedTree : MutableStateFlow<TreeData> = MutableStateFlow(TreeData(
         id = "tree",
         name = "tree",
@@ -58,10 +63,17 @@ class HomeScreenViewModel : ViewModel() {
     val _currentTreeSeedVariant = MutableStateFlow(0)
     val currentTreeSeedVariant : StateFlow<Int> = _currentTreeSeedVariant.asStateFlow()
 
-
+    var treeList : MutableStateFlow<List<TreeData>> = MutableStateFlow(emptyList())
     init {
         viewModelCoroutineScope.launch {
             coins.value = coinManager.reloadCoins()
+            reloadTreeList()
+        }
+    }
+    suspend fun reloadTreeList(){
+        val cacheManager = CacheManager()
+        cacheManager.readFile("tree.json")?.let {
+            treeList.value = Json.decodeFromString(it)
         }
     }
     fun adjustTime(amount: Long) {
@@ -73,7 +85,24 @@ class HomeScreenViewModel : ViewModel() {
         }
     }
 
+    fun selectWitheredTree(focusStats: FocusStats){
+        viewModelCoroutineScope.launch {
+            reloadTreeList()
+            selectedWitheredTree.value = focusStats
+
+            _currentTreeSeedVariant.value = focusStats.treeSeed
+
+            _timerStatus.value = TimerStatus.Idle
+            selectedTree.value = treeList.value.filter { it.id == focusStats.treeId }.first()
+
+            val newMinutes = focusStats.duration / 60
+            _selectedMinutes.value = newMinutes
+            _remainingSeconds.value = focusStats.duration
+            _progress.value = 1f
+        }
+    }
     fun selectTree(treeId: TreeData){
+        selectedWitheredTree.value = null
         _timerStatus.value = TimerStatus.Idle
         selectedTree.value = treeId
     }
@@ -82,6 +111,9 @@ class HomeScreenViewModel : ViewModel() {
     }
     fun toggleIsTreeSelectionVisible() {
         _isTreeSelectionVisible.value = !_isTreeSelectionVisible.value
+    }
+    fun toggleIsWitheredTreeSelectionVisible() {
+        _isWitheredTreeSelectionVisible.value = !_isWitheredTreeSelectionVisible.value
     }
     fun toggleTimer() {
         if (_timerStatus.value != TimerStatus.Running) {
@@ -95,7 +127,9 @@ class HomeScreenViewModel : ViewModel() {
     }
 
     private fun startTimer() {
-        reSelectSeed()
+        if(selectedWitheredTree.value != null){
+            reSelectSeed()
+        }
         _timerStatus.value = TimerStatus.Running
         // We use the current remaining seconds as the "start line" for progress
         val initialSecondsAtStart = _remainingSeconds.value
@@ -150,15 +184,25 @@ class HomeScreenViewModel : ViewModel() {
     private fun stopTimer() {
         timerJob?.cancel()
         viewModelCoroutineScope.launch {
-            treeStatsLodger.appendStats(
-                FocusStats(
-                    selectedMinutes.value*60,
-                    selectedTree.value?.id ?: "tree",
-                    timerStatus.value == TimerStatus.HAS_QUIT,
-                    treeSeed = currentTreeSeedVariant.value,
-
-                )
+            treeStatsLodger.injectStats(
+                if(selectedWitheredTree.value!=null){
+                    FocusStats(
+                        duration = selectedWitheredTree.value!!.duration,
+                        treeId = selectedWitheredTree.value!!.treeId,
+                        isFailed = timerStatus.value == TimerStatus.HAS_QUIT,
+                        id = selectedWitheredTree.value!!.id,
+                        treeSeed = selectedWitheredTree.value!!.treeSeed,
+                    )
+                }else{
+                    FocusStats(
+                        selectedMinutes.value*60,
+                        selectedTree.value?.id ?: "tree",
+                        timerStatus.value == TimerStatus.HAS_QUIT,
+                        treeSeed = currentTreeSeedVariant.value,
+                        )
+                }
             )
+            selectedWitheredTree.value = null
             if(timerStatus.value != TimerStatus.HAS_QUIT){
                 coinManager.addCoins(
                     calculateRewardedCoin()
@@ -173,6 +217,7 @@ class HomeScreenViewModel : ViewModel() {
             TimerStatus.POST_QUIT else TimerStatus.POST_WIN
         _remainingSeconds.value = _selectedMinutes.value * 60L
         _progress.value = 1f
+
     }
 
     fun formatTime(seconds: Long): String {

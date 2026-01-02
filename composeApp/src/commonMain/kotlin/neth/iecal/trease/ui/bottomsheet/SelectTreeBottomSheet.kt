@@ -1,14 +1,12 @@
 package neth.iecal.trease.ui.bottomsheet
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,8 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -36,23 +32,21 @@ import neth.iecal.trease.utils.CacheManager
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun TreeBottomSheet(
+fun GrowTreeBottomSheet(
     onDismiss: () -> Unit,
-    onSelected: (TreeData) -> Unit
+    onSelected: (TreeData) -> Unit,
+    onShowWitheredTrees:()->Unit,
 ) {
     // State
     var uiState by remember { mutableStateOf<TreeUiState>(TreeUiState.Loading) }
     var selectedTree by remember { mutableStateOf<TreeData?>(null) }
 
-    // Data Loading Logic
     LaunchedEffect(Unit) {
         val cacheManager = CacheManager()
-        // Optimistic load from cache
         cacheManager.readFile("tree.json")?.let {
             uiState = TreeUiState.Success(Json.decodeFromString(it))
         }
 
-        // Fetch fresh data
         try {
             val trees = TreeRepository.fetchTrees()
             uiState = TreeUiState.Success(trees)
@@ -70,7 +64,6 @@ fun TreeBottomSheet(
         containerColor = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp // Cleaner flat look
     ) {
-        // Smart Transition between List and Details
         AnimatedContent(
             targetState = selectedTree,
             transitionSpec = {
@@ -92,7 +85,8 @@ fun TreeBottomSheet(
                 TreeGridView(
                     uiState = uiState,
                     onTreeSelected = { onSelected(it) },
-                    onTreeLongPress = { selectedTree = it }
+                    onTreeLongPress = { selectedTree = it },
+                    onShowWitheredTrees
                 )
             }
         }
@@ -104,7 +98,8 @@ fun TreeBottomSheet(
 private fun TreeGridView(
     uiState: TreeUiState,
     onTreeSelected: (TreeData) -> Unit,
-    onTreeLongPress: (TreeData) -> Unit
+    onTreeLongPress: (TreeData) -> Unit,
+    onShowWitheredTrees: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -121,6 +116,14 @@ private fun TreeGridView(
         Text(
             text = "Tap to plant, hold to view details",
             style = MaterialTheme.typography.bodySmall,
+        )
+
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        SuggestionChip(
+            onClick = {onShowWitheredTrees() },
+            label = { Text("Plant a Withered Tree") },
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -172,7 +175,7 @@ private fun TreeDetailView(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp),) {
             // Main Preview Image
             AsyncImage(
-                model = "${Constants.cdn}/images/${tree.id}_${tree.variants - 1}.png",
+                model = "${Constants.cdn}/images/${tree.id}_${tree.variants - 1}_grid.png",
                 contentDescription = null,
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.size(200.dp)

@@ -7,18 +7,27 @@ import neth.iecal.trease.models.FocusStats
 class TreeStatsLodger {
     val cacheManager = CacheManager()
 
-    suspend fun appendStats(focusStats: FocusStats) {
+    suspend fun injectStats(focusStats: FocusStats) {
         val statsRaw = cacheManager.readFile("${getCurrentMonthYear()}.json")
         val stats = if(statsRaw != null) {
              Json.decodeFromString<MutableList<FocusStats>>(statsRaw)
         } else {
             mutableListOf()
         }
-        stats.add(focusStats)
+        val index = stats.indexOfFirst { it.id == focusStats.id }
+
+        if (index != -1) {
+            stats[index] = focusStats   // replace at same position
+        } else {
+            stats.add(focusStats)       // or add if not found
+        }
 
         val encoded = Json.encodeToString(stats)
         cacheManager.saveFile("${getCurrentMonthYear()}.json", encoded)
     }
+
+
+
 
     suspend fun getCache(date:String = getCurrentMonthYear()):List<FocusStats> {
 

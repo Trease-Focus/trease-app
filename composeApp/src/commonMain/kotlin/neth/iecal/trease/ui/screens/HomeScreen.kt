@@ -15,7 +15,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.key.Key.Companion.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -24,20 +23,18 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import coil3.compose.AsyncImage
 import neth.iecal.trease.Garden
 import neth.iecal.trease.GardenFullScreen
 import neth.iecal.trease.models.TimerStatus
-import neth.iecal.trease.ui.bottomsheet.TreeBottomSheet
+import neth.iecal.trease.ui.bottomsheet.GrowTreeBottomSheet
+import neth.iecal.trease.ui.bottomsheet.WitheredTreeSheet
 import neth.iecal.trease.ui.components.TreeGrowthPlayer
 import neth.iecal.trease.ui.dialogs.WarningBeforeQuit
 import neth.iecal.trease.ui.dialogs.YouLost
 import neth.iecal.trease.ui.dialogs.YouWon
-import neth.iecal.trease.utils.CoinManager
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
 import org.jetbrains.compose.resources.painterResource
 import trease.composeapp.generated.resources.Res
-import trease.composeapp.generated.resources.baseline_apps_24
 import trease.composeapp.generated.resources.coin
 import trease.composeapp.generated.resources.grid
 import trease.composeapp.generated.resources.stats
@@ -50,6 +47,10 @@ fun HomeScreen(navController: NavHostController) {
     val progress by viewModel.progress.collectAsStateWithLifecycle()
     val status by viewModel.timerStatus.collectAsStateWithLifecycle()
     val isTreeSelectionVisible by viewModel.isTreeSelectionVisible.collectAsStateWithLifecycle()
+    val isWitheredTreeSelectionVisible by viewModel.isWitheredTreeSelectionVisible.collectAsStateWithLifecycle()
+
+
+
     val coins by viewModel.coins.collectAsStateWithLifecycle()
     var isShowQuitWarningDialog by remember { mutableStateOf(false) }
 
@@ -60,11 +61,27 @@ fun HomeScreen(navController: NavHostController) {
     ) { paddingValues ->
 
         if (isTreeSelectionVisible) {
-            TreeBottomSheet(
+            GrowTreeBottomSheet(
                 onDismiss = { viewModel.toggleIsTreeSelectionVisible() },
                 onSelected = {
                     viewModel.selectTree(it)
                     viewModel.toggleIsTreeSelectionVisible()
+                },
+                onShowWitheredTrees = {
+                    viewModel.toggleIsTreeSelectionVisible()
+                    viewModel.toggleIsWitheredTreeSelectionVisible()
+
+                }
+            )
+        }
+
+        if(isWitheredTreeSelectionVisible) {
+            WitheredTreeSheet(
+                onWitheredTreeSelected = {
+                    viewModel.selectWitheredTree(it)
+                },
+                onDismissRequest = {
+                    viewModel.toggleIsWitheredTreeSelectionVisible()
                 }
             )
         }
@@ -192,7 +209,7 @@ fun HomeScreen(navController: NavHostController) {
                                 modifier = Modifier.fillMaxWidth(0.7f)
                             ) {
                                 OutlinedButton(onClick = {
-                                    viewModel.adjustTime(-5) }) {
+                                    viewModel.adjustTime(-5) }, enabled = viewModel.selectedWitheredTree.value == null) {
                                     Text("−5", fontSize = 18.sp)
                                 }
 
@@ -205,7 +222,8 @@ fun HomeScreen(navController: NavHostController) {
                                 OutlinedButton(onClick = {
 
                                     viewModel.adjustTime(if(viewModel.selectedMinutes.value==1L) 4 else 5)
-                                }) {
+                                },
+                                    enabled = viewModel.selectedWitheredTree.value == null) {
                                     Text("+5", fontSize = 18.sp)
                                 }
                             }

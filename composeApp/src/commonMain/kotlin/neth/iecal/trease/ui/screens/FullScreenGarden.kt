@@ -180,7 +180,7 @@ private fun GlassHudWidget(
 }
 
 @Composable
-fun ZoomableMapLayer(content: @Composable () -> Unit) {
+private fun ZoomableMapLayer(content: @Composable () -> Unit) {
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
 
@@ -207,7 +207,7 @@ fun ZoomableMapLayer(content: @Composable () -> Unit) {
 }
 
 @Composable
-fun MiniMonthSelector(date: LocalDate, onMonthChange: (LocalDate) -> Unit) {
+private fun MiniMonthSelector(date: LocalDate, onMonthChange: (LocalDate) -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
@@ -235,7 +235,7 @@ fun MiniMonthSelector(date: LocalDate, onMonthChange: (LocalDate) -> Unit) {
 }
 
 @Composable
-fun MiniResourceCounter(focus: Int, streak: Int) {
+private fun MiniResourceCounter(focus: Int, streak: Int) {
     Row(horizontalArrangement = Arrangement.spacedBy(16.dp,Alignment.CenterHorizontally)) {
         Column(horizontalAlignment = Alignment.End) {
             Text("$focus", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
