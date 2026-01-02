@@ -19,8 +19,8 @@ import kotlin.math.roundToInt
 import kotlin.time.Clock
 
 class GardenViewModel: ViewModel() {
-    private val _treeList = MutableStateFlow(listOf<String>())
-    val treeList: StateFlow<List<String>> = _treeList.asStateFlow()
+    private val _pngTreeList = MutableStateFlow(listOf<String>())
+    val pngTreeList: StateFlow<List<String>> = _pngTreeList.asStateFlow()
 
     private val _stats = MutableStateFlow(
         listOf<FocusStats>()
@@ -44,23 +44,23 @@ class GardenViewModel: ViewModel() {
         viewModelScope.launch{
             _stats.value = treeStatsLodger.getCache(isoDate)
             println("Loaded ${stats.value} tree stats")
-            addTreeFromStats()
+            listAllPngGrids()
 
             _streak.value = calculateStreak(stats.value)
             _totalFocus.value = calculateTotalMinsFocused(stats.value)
         }
     }
 
-    private fun addTreeFromStats() {
+    private fun listAllPngGrids() {
         val temp = mutableListOf<String>()
         stats.value.forEach {
             if (it.isFailed) {
-                temp.add(it.failureTree)
+                temp.add(it.failureTree+"_grid.png")
             } else {
-                temp.add(it.treeId)
+                temp.add(it.treeId + "_${it.treeSeed}_grid.png")
             }
         }
-        _treeList.value = temp.toList()
+        _pngTreeList.value = temp.toList()
     }
 
 

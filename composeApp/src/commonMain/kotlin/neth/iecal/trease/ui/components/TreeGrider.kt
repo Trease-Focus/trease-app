@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
+import neth.iecal.trease.Constants
 import neth.iecal.trease.toComposeImageBitmap
 import kotlin.math.ceil
 import kotlin.math.min
@@ -44,27 +45,27 @@ private data class ForestLayout(
 )
 
 @Composable
-fun IsometricForest(treeIds: List<String>) {
+fun IsometricForest(pngList: List<String>) {
     val context = LocalPlatformContext.current
 
     var forestLayout by remember { mutableStateOf<ForestLayout?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
-    LaunchedEffect(treeIds) {
+    LaunchedEffect(pngList) {
         isLoading = true
 
         forestLayout = withContext(Dispatchers.Default) {
-            if (treeIds.isEmpty()) return@withContext null
+            if (pngList.isEmpty()) return@withContext null
 
-            val gridSize = ceil(sqrt(treeIds.size.toDouble())).toInt()
+            val gridSize = ceil(sqrt(pngList.size.toDouble())).toInt()
 
             val imageLoader = ImageLoader(context)
 
-            val deferredLoad = treeIds.mapIndexed { index, id ->
+            val deferredLoad = pngList.mapIndexed { index, id ->
                 async {
                     val gridX = index % gridSize
                     val gridY = index / gridSize
-                    val url = "https://trease-focus.github.io/cache-trees/images/${id}_grid.png"
+                    val url = "${Constants.cdn}/images/${id}"
 
                     try {
                         val request = ImageRequest.Builder(context)

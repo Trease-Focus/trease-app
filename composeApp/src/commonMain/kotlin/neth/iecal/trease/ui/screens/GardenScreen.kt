@@ -41,7 +41,6 @@ import org.jetbrains.compose.resources.painterResource
 import trease.composeapp.generated.resources.Res
 import trease.composeapp.generated.resources.outline_arrow_back_ios_24
 import trease.composeapp.generated.resources.outline_arrow_forward_ios_24
-import kotlin.math.round
 import kotlin.math.roundToInt
 
 @Composable
@@ -58,7 +57,7 @@ fun GardenScreen(navController: NavHostController) {
     }
 
     val statsList by viewModel.stats.collectAsStateWithLifecycle()
-    val treeIds by viewModel.treeList.collectAsStateWithLifecycle()
+    val pngTreeList by viewModel.pngTreeList.collectAsStateWithLifecycle()
     val streak by viewModel.streak.collectAsStateWithLifecycle()
     val totalFocus by viewModel.totalFocus.collectAsStateWithLifecycle()
 
@@ -74,7 +73,7 @@ fun GardenScreen(navController: NavHostController) {
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             HeaderSection(
-                treeIds = treeIds,
+                pngList = pngTreeList,
                 currentDate = selectedDate,
                 onMonthChange = { newDate -> selectedDate = newDate }
             )
@@ -111,7 +110,7 @@ fun GardenScreen(navController: NavHostController) {
 
 @Composable
 fun HeaderSection(
-    treeIds: List<String>,
+    pngList: List<String>,
     currentDate: LocalDate,
     onMonthChange: (LocalDate) -> Unit
 ) {
@@ -124,7 +123,7 @@ fun HeaderSection(
                 .size(300.dp)
                 .padding(top = 16.dp)
         ) {
-            IsometricForest(treeIds)
+            IsometricForest(pngList)
         }
 
         MonthSelector(

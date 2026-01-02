@@ -14,7 +14,8 @@ import okio.buffer
 
 suspend fun getCachedVideoPath(
     url: String,
-    videoId: String
+    videoId: String,
+    selectedSeed: Int
 ): String {
 
     val client = getPlatformHttpClient()
@@ -26,7 +27,7 @@ suspend fun getCachedVideoPath(
         fileSystem.createDirectories(cachePath)
     }
 
-    val filePath = cachePath.resolve("$videoId.webm")
+    val filePath = cachePath.resolve("${videoId}_${selectedSeed}}.webm")
 
     if (fileSystem.exists(filePath)) {
         return filePath.toString()

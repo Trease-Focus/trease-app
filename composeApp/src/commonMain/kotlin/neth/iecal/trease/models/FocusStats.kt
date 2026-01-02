@@ -13,5 +13,6 @@ data class FocusStats @OptIn(ExperimentalUuidApi::class) constructor(
     val failureTree: String = "weathered",
     val id:String = Uuid.generateV7().toString(),
     val completedOn: Long = kotlin.time.Clock.System.now().toEpochMilliseconds(),
+    val treeSeed: Int = 0,
 
     )

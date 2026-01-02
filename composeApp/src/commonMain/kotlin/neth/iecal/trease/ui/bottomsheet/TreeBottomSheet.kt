@@ -15,14 +15,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import neth.iecal.trease.Constants
 import neth.iecal.trease.api.TreeRepository
+import neth.iecal.trease.models.TreeData
 import neth.iecal.trease.models.TreeUiState
 import neth.iecal.trease.utils.CacheManager
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TreeBottomSheet(onDismiss: () -> Unit,onSelected: (String) -> Unit) {
+fun TreeBottomSheet(onDismiss: () -> Unit,onSelected: (TreeData) -> Unit) {
     var uiState by remember { mutableStateOf<TreeUiState>(TreeUiState.Loading) }
 
     LaunchedEffect(Unit) {
@@ -58,17 +60,19 @@ fun TreeBottomSheet(onDismiss: () -> Unit,onSelected: (String) -> Unit) {
 }
 
 @Composable
-fun TreeItem(treeId: String,onSelected: (String) -> Unit) {
+fun TreeItem(treeId: TreeData, onSelected: (TreeData) -> Unit) {
     Column(
         modifier = Modifier.padding(8.dp).combinedClickable(true,onClick = { onSelected(treeId) }),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        val treeUrl =  "${Constants.cdn}/images/${treeId.id}_${treeId.variants-1}.png"
+        print("Displaying tree $treeUrl")
         AsyncImage(
-            model = "https://trease-focus.github.io/cache-trees/images/$treeId.png",
-            contentDescription = treeId,
+            model =treeUrl,
+            contentDescription = treeId.name,
             modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp)),
             contentScale = ContentScale.Fit
         )
-        Text(treeId, style = MaterialTheme.typography.bodySmall)
+        Text(treeId.name, style = MaterialTheme.typography.bodySmall)
     }
 }

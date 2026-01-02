@@ -44,7 +44,7 @@ fun YouWon(viewModel: HomeScreenViewModel){
                 Text("Wooww", style = MaterialTheme.typography.headlineLarge,textAlign = TextAlign.Center)
 
                 AsyncImage(
-                    model = "https://trease-focus.github.io/cache-trees/images/${viewModel.selectedTree.value}.png",
+                    model = "https://trease-focus.github.io/cache-trees/images/${viewModel.selectedTree.value.id}_{${viewModel.currentTreeSeedVariant.value}_grid.png",
                     contentDescription = "Dead Tree",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.size(280.dp)

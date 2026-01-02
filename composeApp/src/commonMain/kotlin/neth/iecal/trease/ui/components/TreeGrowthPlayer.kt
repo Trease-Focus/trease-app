@@ -23,16 +23,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import io.github.kdroidfilter.composemediaplayer.rememberVideoPlayerState
 import kotlinx.coroutines.delay
+import neth.iecal.trease.Constants
 import neth.iecal.trease.PlatformVideoPlayer
 import neth.iecal.trease.models.TimerStatus
-import neth.iecal.trease.utils.CacheManager
+import neth.iecal.trease.models.TreeData
 import neth.iecal.trease.utils.getCachedVideoPath
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
 
 
 private data class PlayerState(
     val status: TimerStatus,
-    val treeId: String
+    val tree: TreeData?,
+    val seed: Int
 )
 @Composable
 fun TreeGrowthPlayer(
@@ -43,11 +45,12 @@ fun TreeGrowthPlayer(
     val statePlayer = rememberVideoPlayerState()
     val crntStatus by viewModel.timerStatus.collectAsStateWithLifecycle()
 
-    val selectedTreeId by viewModel.selectedTree.collectAsStateWithLifecycle()
+    val selectedTree by viewModel.selectedTree.collectAsStateWithLifecycle()
+    val selectedSeed by viewModel.currentTreeSeedVariant.collectAsStateWithLifecycle()
     val selectedMinutes by viewModel.selectedMinutes.collectAsStateWithLifecycle()
 
-    val combinedState = remember(crntStatus, selectedTreeId) {
-        PlayerState(crntStatus, selectedTreeId)
+    val combinedState = remember(crntStatus, selectedTree,selectedSeed) {
+        PlayerState(crntStatus, selectedTree, selectedSeed)
     }
     val infiniteTransition = rememberInfiniteTransition(label = "GlowTransition")
 
@@ -71,15 +74,17 @@ fun TreeGrowthPlayer(
         label = "GlowAlpha"
     )
 
-    LaunchedEffect(selectedTreeId, selectedMinutes) {
-        val remoteUrl = "https://trease-focus.github.io/cache-trees/video/$selectedTreeId.webm"
+    LaunchedEffect(selectedTree, selectedSeed) {
+        val remoteUrl = "${Constants.cdn}/video/${selectedTree?.id}_${selectedSeed}.webm"
 
+        println("loading tree $remoteUrl")
         try {
-            val localPath = getCachedVideoPath(remoteUrl, selectedTreeId)
+            val localPath = getCachedVideoPath(remoteUrl, selectedTree?.id ?: "tree",selectedSeed)
             statePlayer.openUri(localPath)
             isReady = true
 
             val originalDurationMs = 30_000L
+            println("duration ${statePlayer.durationText}")
             val targetDurationMs = selectedMinutes * 60_000L
             val stretchFactor = targetDurationMs.toDouble() / originalDurationMs
 
@@ -138,8 +143,8 @@ fun TreeGrowthPlayer(
 
                 TimerStatus.POST_QUIT, TimerStatus.HAS_QUIT -> {
                     AsyncImage(
-                        model = "https://trease-focus.github.io/cache-trees/images/weathered_grid.png",
-                        contentDescription = status.treeId,
+                        model = "${Constants.cdn}/images/weathered_grid.png",
+                        contentDescription = status.tree?.id,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),
                         filterQuality = FilterQuality.High
@@ -148,8 +153,8 @@ fun TreeGrowthPlayer(
                 else -> {
                     Box(Modifier.fillMaxSize()) {
                         AsyncImage(
-                            model = "https://trease-focus.github.io/cache-trees/images/${status.treeId}_grid.png",
-                            contentDescription = status.treeId,
+                            model = "${Constants.cdn}/images/${status.tree?.id}_0_grid.png",
+                            contentDescription = status.tree?.name,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize(),
                             filterQuality = FilterQuality.High

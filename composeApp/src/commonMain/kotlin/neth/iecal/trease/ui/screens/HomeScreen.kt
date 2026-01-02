@@ -48,6 +48,8 @@ fun HomeScreen(navController: NavHostController) {
     val isTreeSelectionVisible by viewModel.isTreeSelectionVisible.collectAsStateWithLifecycle()
     val coins by coinsViewModel.coins.collectAsStateWithLifecycle()
     var isShowQuitWarningDialog by remember { mutableStateOf(false) }
+
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
     ) { paddingValues ->

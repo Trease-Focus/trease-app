@@ -36,6 +36,12 @@ fun Long.getDate(): String {
     )
 }
 
+fun getCurrentDate(): String {
+    return Clock.System.now()
+        .toEpochMilliseconds()
+        .getDate()
+}
+
 fun Long.toLocalDate(): LocalDate =
     Instant.fromEpochMilliseconds(this)
         .toLocalDateTime(TimeZone.currentSystemDefault())

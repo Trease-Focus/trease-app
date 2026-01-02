@@ -7,6 +7,8 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
+import neth.iecal.trease.Constants
+import neth.iecal.trease.models.TreeData
 import neth.iecal.trease.models.TreeResponse
 
 object TreeRepository {
@@ -19,10 +21,10 @@ object TreeRepository {
         }
     }
 
-    suspend fun fetchTrees(): List<String> {
+    suspend fun fetchTrees(): List<TreeData> {
         val response: TreeResponse = client
-            .get("https://trease-focus.github.io/cache-trees/entity_data.json")
+            .get("${Constants.cdn}/entity_data.json")
             .body()
-        return response.trees
+        return response.entities
     }
 }

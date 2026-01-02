@@ -12,7 +12,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import neth.iecal.trease.models.FocusStats
 import neth.iecal.trease.models.TimerStatus
+import neth.iecal.trease.models.TreeData
 import neth.iecal.trease.utils.TreeStatsLodger
+import neth.iecal.trease.utils.randomBiased
+import kotlin.math.log2
 
 
 class HomeScreenViewModel : ViewModel() {
@@ -33,10 +36,22 @@ class HomeScreenViewModel : ViewModel() {
     private val _isTreeSelectionVisible : MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isTreeSelectionVisible = _isTreeSelectionVisible.asStateFlow()
 
-    var selectedTree = MutableStateFlow("tree")
+    var selectedTree : MutableStateFlow<TreeData> = MutableStateFlow(TreeData(
+        id = "tree",
+        name = "tree",
+        description = "tree",
+        creator = "nethical",
+        donate = "tree",
+        variants = 4,
+        basePrice = 0
+    ))
 
     var viewModelCoroutineScope = CoroutineScope(Dispatchers.Default)
     val treeStatsLodger = TreeStatsLodger()
+
+    val _currentTreeSeedVariant = MutableStateFlow(0)
+    val currentTreeSeedVariant : StateFlow<Int> = _currentTreeSeedVariant.asStateFlow()
+
     fun adjustTime(amount: Long) {
         if (_timerStatus.value == TimerStatus.Idle) {
             val newMinutes = (_selectedMinutes.value + amount).coerceIn(1, 120)
@@ -46,7 +61,7 @@ class HomeScreenViewModel : ViewModel() {
         }
     }
 
-    fun selectTree(treeId:String){
+    fun selectTree(treeId: TreeData){
         _timerStatus.value = TimerStatus.Idle
         selectedTree.value = treeId
     }
@@ -68,10 +83,10 @@ class HomeScreenViewModel : ViewModel() {
     }
 
     private fun startTimer() {
+        reSelectSeed()
         _timerStatus.value = TimerStatus.Running
         // We use the current remaining seconds as the "start line" for progress
         val initialSecondsAtStart = _remainingSeconds.value
-
         timerJob = viewModelScope.launch {
             while (_remainingSeconds.value > 0) {
                 delay(1000)
@@ -83,18 +98,56 @@ class HomeScreenViewModel : ViewModel() {
         }
     }
 
+    private fun reSelectSeed(){
+        viewModelCoroutineScope.launch {
+            _currentTreeSeedVariant.value = randomBiased(selectedTree.value?.variants ?: 1,
+                calculateBias(selectedMinutes.value))
+            println("Seed ${currentTreeSeedVariant.value}")
+        }
+    }
+    private suspend fun calculateBias(
+        currentFocusDurationInMins: Long
+    ): Double {
+        val stats = treeStatsLodger.getTodayStats()
+
+        if (stats.isEmpty()) return 1.0
+
+        val totalSessions = stats.size
+        val successfulSessions = stats.count { !it.isFailed }
+        val failedSessions = totalSessions - successfulSessions
+
+        val focusBias = log2(currentFocusDurationInMins + 1.0)
+            .coerceAtMost(4.0) // ~64 mins max effect
+
+        val successRatio = successfulSessions.toDouble() / totalSessions
+
+        val failurePenalty = failedSessions * 0.3
+
+        val rawBias = 1.0 - (
+                (focusBias * 0.15) +
+                        (successRatio * 0.4) -
+                        (failurePenalty * 0.1)
+                )
+
+        // 1.0 → uniform
+        // 0.3 → very strong bias toward high values
+        return rawBias.coerceIn(0.3, 1.0)
+    }
+
+
     private fun stopTimer() {
         timerJob?.cancel()
         viewModelCoroutineScope.launch {
             treeStatsLodger.appendStats(
                 FocusStats(
                     selectedMinutes.value*60,
-                    selectedTree.value,
-                    timerStatus.value == TimerStatus.HAS_QUIT
+                    selectedTree.value?.id ?: "tree",
+                    timerStatus.value == TimerStatus.HAS_QUIT,
+                    treeSeed = currentTreeSeedVariant.value,
+
                 )
             )
         }
-
 
     }
     fun cleanTimerSession(){

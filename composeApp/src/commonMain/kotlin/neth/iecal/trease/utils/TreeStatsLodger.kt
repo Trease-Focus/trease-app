@@ -29,4 +29,11 @@ class TreeStatsLodger {
         return stats
     }
 
+    suspend fun getTodayStats():List<FocusStats> {
+        val cache = getCache().filter {
+            it.completedOn.getDate() == getCurrentDate()
+        }
+        return cache
+    }
+
 }

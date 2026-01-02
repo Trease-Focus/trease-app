@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import coil3.compose.AsyncImage
+import neth.iecal.trease.Constants
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
 
 
@@ -46,7 +47,7 @@ fun YouLost(viewModel: HomeScreenViewModel){
                 Text("Your Tree weathered", style = MaterialTheme.typography.headlineLarge,textAlign = TextAlign.Center)
 
                 AsyncImage(
-                    model = "https://trease-focus.github.io/cache-trees/images/weathered_grid.png",
+                    model = "${Constants.cdn}/images/weathered_grid.png",
                     contentDescription = "Dead Tree",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.size(280.dp)
