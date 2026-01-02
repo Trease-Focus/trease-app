@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -23,6 +24,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import io.github.kdroidfilter.composemediaplayer.rememberVideoPlayerState
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import neth.iecal.trease.Constants
 import neth.iecal.trease.PlatformVideoPlayer
 import neth.iecal.trease.models.TimerStatus
@@ -30,43 +32,150 @@ import neth.iecal.trease.models.TreeData
 import neth.iecal.trease.utils.getCachedVideoPath
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
 
-
-private data class PlayerState(
+// Helper for animation state
+private data class OverlayState(
     val status: TimerStatus,
     val tree: TreeData?,
     val seed: Int
 )
+
 @Composable
 fun TreeGrowthPlayer(
     viewModel: HomeScreenViewModel,
     scale: Float,
 ) {
-    var isReady by remember { mutableStateOf(false) }
+    var isVideoLoaded by remember { mutableStateOf(false) }
     val statePlayer = rememberVideoPlayerState()
     val crntStatus by viewModel.timerStatus.collectAsStateWithLifecycle()
 
+    val selectedMinutes by viewModel.selectedMinutes.collectAsStateWithLifecycle()
     val selectedTree by viewModel.selectedTree.collectAsStateWithLifecycle()
     val selectedSeed by viewModel.currentTreeSeedVariant.collectAsStateWithLifecycle()
-    val selectedMinutes by viewModel.selectedMinutes.collectAsStateWithLifecycle()
 
-    val combinedState = remember(crntStatus, selectedTree,selectedSeed) {
-        PlayerState(crntStatus, selectedTree, selectedSeed)
+    LaunchedEffect(selectedTree, selectedSeed) {
+        isVideoLoaded = false
+        val remoteUrl = "${Constants.cdn}/video/${selectedTree?.id}_${selectedSeed}.webm"
+
+        try {
+            val localPath = getCachedVideoPath(remoteUrl, selectedTree?.id ?: "tree", selectedSeed)
+            statePlayer.openUri(localPath)
+            isVideoLoaded = true
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
-    val infiniteTransition = rememberInfiniteTransition(label = "GlowTransition")
 
+    LaunchedEffect(crntStatus, isVideoLoaded, selectedMinutes) {
+        if (!isVideoLoaded) return@LaunchedEffect
+
+        if (crntStatus == TimerStatus.Running) {
+            statePlayer.play()
+            delay(600) // Let engine warm up
+
+            val videoDurationMs = 30_000L // 30 seconds
+            val targetDurationMs = (selectedMinutes ?: 1) * 60_000L // e.g., 25 mins -> 1,500,000ms
+
+            val stretchFactor = (targetDurationMs.toDouble() / videoDurationMs).coerceAtLeast(1.0)
+
+            val playChunk = 200L
+            // Formula: TotalStepTime = Play * Factor. Pause = Total - Play.
+            val pauseChunk = ((playChunk * stretchFactor) - playChunk).toLong().coerceAtLeast(0L)
+
+            println("TreeGrowth: Target=${selectedMinutes}m ($targetDurationMs ms). Factor=$stretchFactor. Play=$playChunk, Pause=$pauseChunk")
+
+            while (isActive && crntStatus == TimerStatus.Running) {
+                statePlayer.play()
+                delay(playChunk)
+
+                if (isActive && crntStatus == TimerStatus.Running && pauseChunk > 0) {
+                    statePlayer.pause()
+                    delay(pauseChunk)
+                }
+            }
+        } else {
+            statePlayer.pause()
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .scale(scale),
+        contentAlignment = Alignment.Center
+    ) {
+        // We render this DIRECTLY. No If-statements, no Animations.
+        // It sits in the background persistently.
+        PlatformVideoPlayer(
+            statePlayer,
+            Modifier.fillMaxSize()
+        )
+
+        val overlayState = remember(crntStatus, selectedTree, selectedSeed) {
+            OverlayState(crntStatus, selectedTree, selectedSeed)
+        }
+
+        AnimatedContent(
+            targetState = overlayState,
+            transitionSpec = { fadeIn(tween(500)) togetherWith fadeOut(tween(500)) },
+            modifier = Modifier.fillMaxSize(),
+            label = "OverlayTransition"
+        ) { state ->
+            when (state.status) {
+                TimerStatus.Running -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        BreathingGlow()
+                    }
+                }
+
+                TimerStatus.POST_QUIT, TimerStatus.HAS_QUIT -> {
+                    // Dead Tree Image (Opaque)
+                    AsyncImage(
+                        model = "${Constants.cdn}/images/weathered_grid.png",
+                        contentDescription = "Withered",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                        filterQuality = FilterQuality.High
+                    )
+                }
+
+                else -> {
+                    Box(Modifier.fillMaxSize()) {
+                        AsyncImage(
+                            model = "${Constants.cdn}/images/${state.tree?.id}_0_grid.png",
+                            contentDescription = "Preview",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                            filterQuality = FilterQuality.High
+                        )
+
+                        if (!isVideoLoaded) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.align(Alignment.Center),
+                                color = Color.White.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun BreathingGlow() {
+    val infiniteTransition = rememberInfiniteTransition(label = "GlowTransition")
     val glowScale by infiniteTransition.animateFloat(
-        initialValue = 0.1f,
+        initialValue = 0.6f,
         targetValue = 0.8f,
         animationSpec = infiniteRepeatable(
-            animation = tween(4000, easing = EaseInOutSine), // 4s slow breath
+            animation = tween(4000, easing = EaseInOutSine),
             repeatMode = RepeatMode.Reverse
         ),
         label = "GlowScale"
     )
-
     val glowAlpha by infiniteTransition.animateFloat(
-        initialValue = 0.1f,
-        targetValue = 0.3f,
+        initialValue = 0.05f, // Very subtle
+        targetValue = 0.2f,
         animationSpec = infiniteRepeatable(
             animation = tween(4000, easing = EaseInOutSine),
             repeatMode = RepeatMode.Reverse
@@ -74,104 +183,16 @@ fun TreeGrowthPlayer(
         label = "GlowAlpha"
     )
 
-    LaunchedEffect(selectedTree, selectedSeed) {
-        val remoteUrl = "${Constants.cdn}/video/${selectedTree?.id}_${selectedSeed}.webm"
-
-        println("loading tree $remoteUrl")
-        try {
-            val localPath = getCachedVideoPath(remoteUrl, selectedTree?.id ?: "tree",selectedSeed)
-            statePlayer.openUri(localPath)
-            isReady = true
-
-            val originalDurationMs = 30_000L
-            println("duration ${statePlayer.durationText}")
-            val targetDurationMs = selectedMinutes * 60_000L
-            val stretchFactor = targetDurationMs.toDouble() / originalDurationMs
-
-            val playChunkMs = 100L
-            val pauseChunkMs = ((playChunkMs * stretchFactor) - playChunkMs).toLong().coerceAtLeast(0)
-
-            // Monotonic video loop (no animation logic inside here anymore)
-            while (true) {
-                statePlayer.play()
-                delay(playChunkMs)
-                statePlayer.pause()
-                delay(pauseChunkMs)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    Box(
-        modifier = Modifier.fillMaxSize().scale(scale),
-        contentAlignment = Alignment.Center
-    ) {
-        AnimatedContent(
-            targetState = combinedState,
-            transitionSpec = {
-                fadeIn(tween(800)) togetherWith fadeOut(tween(800))
-            },
-            modifier = Modifier.fillMaxSize(),
-            label = "StateTransition"
-        ) { status ->
-            when (status.status) {
-                TimerStatus.Running -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        PlatformVideoPlayer(
-                            statePlayer,
-                            Modifier.fillMaxSize()
-                        )
-
-                        Canvas(modifier = Modifier.size(350.dp)) {
-                            drawCircle(
-                                brush = Brush.radialGradient(
-                                    colors = listOf(
-                                        Color(0xFFFFF9C4).copy(alpha = glowAlpha), // Soft Sunlight Yellow
-                                        Color(0xFFFFD54F).copy(alpha = glowAlpha * 0.5f), // Warm Amber
-                                        Color.Transparent
-                                    ),
-                                    center = center,
-                                    radius = (size.minDimension / 2) * glowScale
-                                ),
-                                radius = (size.minDimension / 2) * glowScale,
-                                center = center
-                            )
-                        }
-                    }
-                }
-
-                TimerStatus.POST_QUIT, TimerStatus.HAS_QUIT -> {
-                    AsyncImage(
-                        model = "${Constants.cdn}/images/weathered_grid.png",
-                        contentDescription = status.tree?.id,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize(),
-                        filterQuality = FilterQuality.High
-                    )
-                }
-                else -> {
-                    Box(Modifier.fillMaxSize()) {
-                        AsyncImage(
-                            model = "${Constants.cdn}/images/${status.tree?.id}_0_grid.png",
-                            contentDescription = status.tree?.name,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize(),
-                            filterQuality = FilterQuality.High
-                        )
-
-                        if (!isReady) {
-                            CircularProgressIndicator(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .align(Alignment.Center),
-                                color = Color.White.copy(alpha = 0.7f)
-                            )
-                        }
-                    }
-                }
-
-            }
-        }
+    Canvas(modifier = Modifier.size(350.dp)) {
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    Color(0xFFFFF9C4).copy(alpha = glowAlpha),
+                    Color.Transparent
+                ),
+                center = center,
+                radius = (size.minDimension / 2) * glowScale
+            )
+        )
     }
 }

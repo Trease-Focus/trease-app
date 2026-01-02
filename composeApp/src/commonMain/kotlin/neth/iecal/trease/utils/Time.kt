@@ -1,5 +1,7 @@
 package neth.iecal.trease.utils
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -9,8 +11,6 @@ import kotlinx.datetime.format.Padding
 import kotlinx.datetime.format.char
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
-import kotlin.time.Instant
 
 fun Long.getDayLabel(): String {
     val date = Instant.fromEpochMilliseconds(this)
@@ -27,7 +27,7 @@ fun Long.getDate(): String {
 
     return date.format(
         LocalDateTime.Format {
-            day(padding = Padding.ZERO)
+            dayOfMonth(padding = Padding.ZERO)
             char('/')
             monthNumber(padding = Padding.ZERO)
             char('/')

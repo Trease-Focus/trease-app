@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import coil3.compose.AsyncImage
+import neth.iecal.trease.Constants
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
 
 
@@ -44,7 +45,7 @@ fun YouWon(viewModel: HomeScreenViewModel){
                 Text("Wooww", style = MaterialTheme.typography.headlineLarge,textAlign = TextAlign.Center)
 
                 AsyncImage(
-                    model = "https://trease-focus.github.io/cache-trees/images/${viewModel.selectedTree.value.id}_{${viewModel.currentTreeSeedVariant.value}_grid.png",
+                    model = "${Constants.cdn}/images/${viewModel.selectedTree.value.id}_${viewModel.currentTreeSeedVariant.value}_grid.png",
                     contentDescription = "Dead Tree",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.size(280.dp)

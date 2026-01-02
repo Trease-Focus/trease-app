@@ -24,7 +24,6 @@ import kotlin.collections.filter
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.max
-import kotlin.time.Clock
 
 @Composable
 fun WeeklyActivityChart(allStats: List<FocusStats>) {
@@ -48,7 +47,7 @@ fun WeeklyActivityChart(allStats: List<FocusStats>) {
         val startOfWeek = endOfWeek.minus(DatePeriod(days = 6))
 
         Text(
-            text = "${startOfWeek.month.name} ${startOfWeek.day} - ${endOfWeek.month.name} ${endOfWeek.dayOfMonth}",
+            text = "${startOfWeek.month.name} ${startOfWeek.dayOfMonth} - ${endOfWeek.month.name} ${endOfWeek.dayOfMonth}",
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = 16.dp).align(Alignment.CenterHorizontally)
