@@ -15,9 +15,12 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -50,7 +53,6 @@ fun GrowTreeBottomSheet(
     val coroutine = rememberCoroutineScope()
     var showBrokeDialog by remember { mutableStateOf(false) }
 
-
     LaunchedEffect(Unit) {
         val treePurchaseManager = TreePurchaseManager()
         purchasedTrees = treePurchaseManager.loadAllPurchasedTrees()
@@ -61,7 +63,7 @@ fun GrowTreeBottomSheet(
         }
 
         try {
-            val trees = TreeRepository.fetchTrees()
+            val trees = TreeRepository.fetchTrees().filter { it.id != "weathered" }
             uiState = TreeUiState.Success(trees)
             cacheManager.saveFile("tree.json", Json.encodeToString(trees))
         } catch (e: Exception) {
@@ -237,6 +239,8 @@ private fun TreeDetailView(
     isPurchased: Boolean,
     onPurchased: ()->Unit,
 ) {
+    val uriHandler = LocalUriHandler.current
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -295,7 +299,16 @@ private fun TreeDetailView(
         }
 
         Spacer(Modifier.height(32.dp))
-
+        OutlinedButton(
+            onClick = {
+                uriHandler.openUri(tree.donate)
+            },
+            modifier = Modifier.fillMaxWidth().height(50.dp),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Donate tree creator")
+        }
+        Spacer(Modifier.height(16.dp))
         if(isPurchased) {
             Button(
                 onClick = onSelect,

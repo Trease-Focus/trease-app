@@ -87,36 +87,41 @@ fun HomeScreen(navController: NavHostController) {
         }
 
         Box(Modifier.fillMaxSize()) {
-            TopAppBar(
-                modifier = Modifier.align(Alignment.TopCenter).zIndex(999f).padding(end = 16.dp),
-                title = {},
-                actions = {
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { navController.navigate(Garden) }, Modifier.size(40.dp)) {
-                            Image(
-                                painter = painterResource(Res.drawable.stats),
-                                contentDescription = "Garden",
-                            )
-                        }
-                        IconButton(onClick = { navController.navigate(GardenFullScreen) }, Modifier.size(25.dp)) {
-                            Image(
-                                painter = painterResource(Res.drawable.grid),
-                                contentDescription = "Garden",
-                                Modifier.size(40.dp)
-                            )
-                        }
-                        Row {
-                            Image(
-                                painter = painterResource(Res.drawable.coin),
-                                contentDescription = "Garden",
-                            )
-                            Text(" $coins")
+            if(status != TimerStatus.Running) {
+                TopAppBar(
+                    modifier = Modifier.align(Alignment.TopCenter).zIndex(999f).padding(end = 16.dp),
+                    title = {},
+                    actions = {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            IconButton(onClick = { navController.navigate(Garden) }, Modifier.size(40.dp)) {
+                                Image(
+                                    painter = painterResource(Res.drawable.stats),
+                                    contentDescription = "Garden",
+                                )
+                            }
+                            IconButton(onClick = { navController.navigate(GardenFullScreen) }, Modifier.size(25.dp)) {
+                                Image(
+                                    painter = painterResource(Res.drawable.grid),
+                                    contentDescription = "Garden",
+                                    Modifier.size(40.dp)
+                                )
+                            }
+                            Row {
+                                Image(
+                                    painter = painterResource(Res.drawable.coin),
+                                    contentDescription = "Garden",
+                                )
+                                Text(" $coins")
+                            }
+
                         }
 
                     }
-
-                }
-            )
+                )
+            }
             Column(
                 Modifier.align(Alignment.Center),
                 verticalArrangement = Arrangement.Center,
