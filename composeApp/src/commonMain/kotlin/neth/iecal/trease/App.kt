@@ -7,12 +7,16 @@ import kotlinx.serialization.Serializable
 import neth.iecal.trease.ui.screens.GardenScreen
 import neth.iecal.trease.ui.screens.HomeScreen
 import neth.iecal.trease.ui.theme.MainTheme
+import neth.iecal.trease.GardenFullScreen
+import neth.iecal.trease.ui.screens.FullScreenGarden
 
 @Serializable
 data object Home
 @Serializable
 data object Garden
 
+@Serializable
+data object GardenFullScreen
 @Composable
 fun App() {
     val navController = rememberNavController()
@@ -23,6 +27,9 @@ fun App() {
             }
             composable<Garden> {
                 GardenScreen(navController)
+            }
+            composable<GardenFullScreen> {
+                FullScreenGarden(navController)
             }
 
         }

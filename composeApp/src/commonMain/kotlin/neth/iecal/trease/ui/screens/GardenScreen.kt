@@ -8,6 +8,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -31,6 +32,7 @@ import androidx.navigation.NavHostController
 import kotlinx.datetime.*
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.number
+import neth.iecal.trease.GardenFullScreen
 import neth.iecal.trease.models.FocusStats
 import neth.iecal.trease.ui.components.stats.EfficiencyDonutChart
 import neth.iecal.trease.ui.components.stats.HourlyFocusChart
@@ -75,7 +77,10 @@ fun GardenScreen(navController: NavHostController) {
             HeaderSection(
                 pngList = pngTreeList,
                 currentDate = selectedDate,
-                onMonthChange = { newDate -> selectedDate = newDate }
+                onMonthChange = { newDate -> selectedDate = newDate },
+                fullScreen = {
+                    navController.navigate(GardenFullScreen)
+                }
             )
 
             KeyMetricsRow(totalFocus,streak)
@@ -112,7 +117,8 @@ fun GardenScreen(navController: NavHostController) {
 fun HeaderSection(
     pngList: List<String>,
     currentDate: LocalDate,
-    onMonthChange: (LocalDate) -> Unit
+    onMonthChange: (LocalDate) -> Unit,
+    fullScreen: ()->Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -122,6 +128,7 @@ fun HeaderSection(
             Modifier
                 .size(300.dp)
                 .padding(top = 16.dp)
+                .clickable(true,onClick = { fullScreen() }),
         ) {
             IsometricForest(pngList)
         }
@@ -134,7 +141,7 @@ fun HeaderSection(
 }
 
 @Composable
-fun MonthSelector(
+private fun MonthSelector(
     currentDate: LocalDate,
     onMonthChange: (LocalDate) -> Unit
 ) {
