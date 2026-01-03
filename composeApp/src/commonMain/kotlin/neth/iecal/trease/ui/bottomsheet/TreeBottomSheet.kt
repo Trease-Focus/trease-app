@@ -51,7 +51,7 @@ fun TreeBottomSheet(onDismiss: () -> Unit,onSelected: (TreeData) -> Unit) {
             modifier = Modifier.fillMaxWidth().heightIn(min = 300.dp)
         ) {
             if (uiState is TreeUiState.Success) {
-                items((uiState as TreeUiState.Success).trees) { treeId ->
+                items((uiState as TreeUiState.Success).trees.filter { it.isGrowable }) { treeId ->
                     TreeItem(treeId,onSelected)
                 }
             }
