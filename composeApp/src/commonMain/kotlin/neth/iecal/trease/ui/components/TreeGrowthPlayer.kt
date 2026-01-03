@@ -30,6 +30,7 @@ import neth.iecal.trease.PlatformVideoPlayer
 import neth.iecal.trease.models.TimerStatus
 import neth.iecal.trease.models.TreeData
 import neth.iecal.trease.utils.getCachedVideoPath
+import neth.iecal.trease.utils.mmssToSeconds
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
 
 // Helper for animation state
@@ -72,12 +73,11 @@ fun TreeGrowthPlayer(
             statePlayer.play()
             delay(600) // Let engine warm up
 
-            val videoDurationMs = 30_000L // 30 seconds
+            val videoDurationMs = mmssToSeconds(statePlayer.durationText) * 1000
             val targetDurationMs = (selectedMinutes ?: 1) * 60_000L // e.g., 25 mins -> 1,500,000ms
-
             val stretchFactor = (targetDurationMs.toDouble() / videoDurationMs).coerceAtLeast(1.0)
 
-            val playChunk = 200L
+            val playChunk = 50L
             // Formula: TotalStepTime = Play * Factor. Pause = Total - Play.
             val pauseChunk = ((playChunk * stretchFactor) - playChunk).toLong().coerceAtLeast(0L)
 

@@ -13,4 +13,7 @@ fun randomBiased(y: Int, bias: Double = 1.0): Int {
     return ((biased * y).toInt())
         .coerceIn(0, y - 1)
 }
-
+fun mmssToSeconds(time: String): Int {
+    val (mm, ss) = time.split(":").map { it.toInt() }
+    return mm * 60 + ss
+}
