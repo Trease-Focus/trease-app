@@ -48,7 +48,8 @@ class HomeScreenViewModel : ViewModel() {
         creator = "nethical",
         donate = "tree",
         variants = 4,
-        basePrice = 0
+        basePrice = 0,
+        isGrowable = true
     ))
 
     var viewModelCoroutineScope = CoroutineScope(Dispatchers.Default)

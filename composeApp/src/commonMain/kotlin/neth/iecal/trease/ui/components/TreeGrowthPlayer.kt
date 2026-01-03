@@ -130,7 +130,7 @@ fun TreeGrowthPlayer(
                 TimerStatus.POST_QUIT, TimerStatus.HAS_QUIT -> {
                     // Dead Tree Image (Opaque)
                     AsyncImage(
-                        model = "${Constants.cdn}/images/weathered_grid.png",
+                        model = "${Constants.cdn}/images/weathered_0_grid.png",
                         contentDescription = "Withered",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize(),

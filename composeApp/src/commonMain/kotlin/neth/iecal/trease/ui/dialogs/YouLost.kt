@@ -70,7 +70,7 @@ fun YouLost(viewModel: HomeScreenViewModel) {
                         )
 
                         AsyncImage(
-                            model = "${Constants.cdn}/images/weathered_grid.png",
+                            model = "${Constants.cdn}/images/weathered_0_grid.png",
                             contentDescription = "Dead Tree",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.size(280.dp)
