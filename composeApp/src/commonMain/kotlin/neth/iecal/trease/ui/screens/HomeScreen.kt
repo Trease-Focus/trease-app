@@ -29,12 +29,14 @@ import neth.iecal.trease.models.TimerStatus
 import neth.iecal.trease.ui.bottomsheet.GrowTreeBottomSheet
 import neth.iecal.trease.ui.bottomsheet.WitheredTreeSheet
 import neth.iecal.trease.ui.components.TreeGrowthPlayer
+import neth.iecal.trease.ui.dialogs.AppInfoDialog
 import neth.iecal.trease.ui.dialogs.WarningBeforeQuit
 import neth.iecal.trease.ui.dialogs.YouLost
 import neth.iecal.trease.ui.dialogs.YouWon
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
 import org.jetbrains.compose.resources.painterResource
 import trease.composeapp.generated.resources.Res
+import trease.composeapp.generated.resources.baseline_info_outline_24
 import trease.composeapp.generated.resources.coin
 import trease.composeapp.generated.resources.grid
 import trease.composeapp.generated.resources.stats
@@ -53,7 +55,7 @@ fun HomeScreen(navController: NavHostController) {
 
     val coins by viewModel.coins.collectAsStateWithLifecycle()
     var isShowQuitWarningDialog by remember { mutableStateOf(false) }
-
+    var showAppInfoDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -86,6 +88,11 @@ fun HomeScreen(navController: NavHostController) {
             )
         }
 
+        if(showAppInfoDialog) {
+            AppInfoDialog{
+                showAppInfoDialog = false
+            }
+        }
         Box(Modifier.fillMaxSize()) {
             if(status != TimerStatus.Running) {
                 TopAppBar(
@@ -96,6 +103,12 @@ fun HomeScreen(navController: NavHostController) {
                             horizontalArrangement = Arrangement.spacedBy(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            IconButton(onClick = { showAppInfoDialog = true }, Modifier.size(40.dp)) {
+                                Image(
+                                    painter = painterResource(Res.drawable.baseline_info_outline_24),
+                                    contentDescription = "Info",
+                                )
+                            }
                             IconButton(onClick = { navController.navigate(Garden) }, Modifier.size(40.dp)) {
                                 Image(
                                     painter = painterResource(Res.drawable.stats),
