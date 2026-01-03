@@ -158,10 +158,12 @@ class HomeScreenViewModel : ViewModel() {
 
                 )
             )
-            coinManager.addCoins(
-                calculateRewardedCoin()
-            )
-            coins.value = coinManager.reloadCoins()
+            if(timerStatus.value != TimerStatus.HAS_QUIT){
+                coinManager.addCoins(
+                    calculateRewardedCoin()
+                )
+                coins.value = coinManager.reloadCoins()
+            }
         }
 
     }
