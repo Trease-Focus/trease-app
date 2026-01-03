@@ -4,20 +4,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,72 +26,155 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import coil3.compose.AsyncImage
-import neth.iecal.trease.models.TimerStatus
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
-
+import org.jetbrains.compose.resources.painterResource
+import trease.composeapp.generated.resources.Res
+import trease.composeapp.generated.resources.outline_arrow_forward_ios_24
 
 @Composable
-fun WarningBeforeQuit(viewModel: HomeScreenViewModel,onDismissed:()->Unit,onQuitConfirmed: () -> Unit) {
+fun WarningBeforeQuit(
+    viewModel: HomeScreenViewModel,
+    onDismissed: () -> Unit,
+    onQuitConfirmed: () -> Unit
+) {
     val timeRemaining by viewModel.remainingSeconds.collectAsState()
     val goalFocus by viewModel.selectedMinutes.collectAsState()
 
+    // Logic to calculate elapsed time
+    val elapsedSeconds = (goalFocus * 60L) - timeRemaining
+    val elapsedFormatted = viewModel.formatTime(elapsedSeconds)
+
+    // Validation State
     var typeText by remember { mutableStateOf("") }
-    var quitterText by remember { mutableStateOf("I am nub") }
-    Dialog(
-        onDismissRequest = {
-            onDismissed()
-        }
-    ){
-        Surface(modifier = Modifier.wrapContentSize().verticalScroll(rememberScrollState())) {
-            Column(modifier = Modifier.padding(32.dp),
+    val quitterText by remember { mutableStateOf("I am nub") }
+    val isMatch = typeText == quitterText
+
+    Dialog(onDismissRequest = { onDismissed() }) {
+        Card(
+            shape = RoundedCornerShape(24.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center) {
-
-                Text("The tree will wither..", style = MaterialTheme.typography.headlineLarge,textAlign = TextAlign.Center)
-
-                AsyncImage(
-                    model = "https://trease-focus.github.io/cache-trees/images/${viewModel.selectedTree.value}_grid.png",
-                    contentDescription = "Tree",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(280.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "The tree will wither...",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
                 )
 
-                Text("You've already focused ${viewModel.formatTime((goalFocus*60L) - (timeRemaining))} minutes." +
-                        "Its only a short way until $goalFocus minutes..."+
-                    "Please type \"$quitterText\" below to unlock the quit button",
-                    textAlign = TextAlign.Center)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    WarningStatItem(
+                        value = elapsedFormatted,
+                        label = "Focused"
+                    )
+                    WarningStatItem(
+                        value = "${goalFocus}m",
+                        label = "Goal"
+                    )
+                }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = buildAnnotatedString {
+                        append("To confirm giving up, type \"")
+                        withStyle(style = SpanStyle(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.error
+                        )) {
+                            append(quitterText)
+                        }
+                        append("\" below.")
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
 
                 OutlinedTextField(
                     value = typeText,
-                    onValueChange = {typeText=it}
+                    onValueChange = { typeText = it },
+                    placeholder = { Text(quitterText, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)) },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(16.dp))
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),){
-                    OutlinedButton(onClick = {
-                        onQuitConfirmed()
-                        onDismissed()
-                    },
-                        enabled = typeText==quitterText ){
-                        Text("QUIT")
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Button(
+                        onClick = { onDismissed() },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Resume")
                     }
-                    Button(onClick = {
-                        onDismissed()
-                    }){
-                        Text("Close")
+
+                    TextButton(
+                        onClick = {
+                            onQuitConfirmed()
+                            onDismissed()
+                        },
+                        enabled = isMatch,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error,
+                            disabledContentColor = MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
+                        )
+                    ) {
+                        Text("Give Up")
                     }
                 }
-
             }
-
         }
+    }
+}
+
+@Composable
+private fun WarningStatItem(
+    value: String,
+    label: String
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Icon(
+            painter = painterResource( Res.drawable.outline_arrow_forward_ios_24),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(20.dp)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

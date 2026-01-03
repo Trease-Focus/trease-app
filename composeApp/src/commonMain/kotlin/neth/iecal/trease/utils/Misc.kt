@@ -1,5 +1,6 @@
 package neth.iecal.trease.utils
 
+import kotlin.math.abs
 import kotlin.math.pow
 
 fun randomBiased(y: Int, bias: Double = 1.0): Int {
@@ -12,3 +13,4 @@ fun randomBiased(y: Int, bias: Double = 1.0): Int {
     return ((biased * y).toInt())
         .coerceIn(0, y - 1)
 }
+

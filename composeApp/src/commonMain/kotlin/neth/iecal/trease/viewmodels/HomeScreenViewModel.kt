@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.launch
 import neth.iecal.trease.models.FocusStats
 import neth.iecal.trease.models.TimerStatus
 import neth.iecal.trease.models.TreeData
+import neth.iecal.trease.utils.CoinManager
 import neth.iecal.trease.utils.TreeStatsLodger
 import neth.iecal.trease.utils.randomBiased
 import kotlin.math.log2
@@ -36,6 +38,9 @@ class HomeScreenViewModel : ViewModel() {
     private val _isTreeSelectionVisible : MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isTreeSelectionVisible = _isTreeSelectionVisible.asStateFlow()
 
+    val coinManager = CoinManager()
+    val coins = MutableStateFlow(0)
+
     var selectedTree : MutableStateFlow<TreeData> = MutableStateFlow(TreeData(
         id = "tree",
         name = "tree",
@@ -52,6 +57,12 @@ class HomeScreenViewModel : ViewModel() {
     val _currentTreeSeedVariant = MutableStateFlow(0)
     val currentTreeSeedVariant : StateFlow<Int> = _currentTreeSeedVariant.asStateFlow()
 
+
+    init {
+        viewModelCoroutineScope.launch {
+            coins.value = coinManager.reloadCoins()
+        }
+    }
     fun adjustTime(amount: Long) {
         if (_timerStatus.value == TimerStatus.Idle) {
             val newMinutes = (_selectedMinutes.value + amount).coerceIn(1, 120)
@@ -147,6 +158,10 @@ class HomeScreenViewModel : ViewModel() {
 
                 )
             )
+            coinManager.addCoins(
+                calculateRewardedCoin()
+            )
+            coins.value = coinManager.reloadCoins()
         }
 
     }
@@ -163,5 +178,12 @@ class HomeScreenViewModel : ViewModel() {
         val minutesStr = m.toString().padStart(2, '0')
         val secondsStr = s.toString().padStart(2, '0')
         return "$minutesStr:$secondsStr"
+    }
+
+    fun calculateRarity(): Boolean = currentTreeSeedVariant.value==selectedTree.value.variants
+
+    fun calculateRewardedCoin(): Int {
+        val multiplier = if(calculateRarity()) 2 else 1
+        return selectedMinutes.value.toInt() * multiplier
     }
 }

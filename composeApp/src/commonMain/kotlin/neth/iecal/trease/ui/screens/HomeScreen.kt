@@ -41,12 +41,11 @@ import trease.composeapp.generated.resources.coin
 @Composable
 fun HomeScreen(navController: NavHostController) {
     val viewModel = viewModel { HomeScreenViewModel() }
-    val coinsViewModel = viewModel { CoinManager() }
     val remainingSeconds by viewModel.remainingSeconds.collectAsStateWithLifecycle()
     val progress by viewModel.progress.collectAsStateWithLifecycle()
     val status by viewModel.timerStatus.collectAsStateWithLifecycle()
     val isTreeSelectionVisible by viewModel.isTreeSelectionVisible.collectAsStateWithLifecycle()
-    val coins by coinsViewModel.coins.collectAsStateWithLifecycle()
+    val coins by viewModel.coins.collectAsStateWithLifecycle()
     var isShowQuitWarningDialog by remember { mutableStateOf(false) }
 
 
@@ -174,7 +173,8 @@ fun HomeScreen(navController: NavHostController) {
                                 horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
                                 modifier = Modifier.fillMaxWidth(0.7f)
                             ) {
-                                OutlinedButton(onClick = { viewModel.adjustTime(-5) }) {
+                                OutlinedButton(onClick = {
+                                    viewModel.adjustTime(-5) }) {
                                     Text("−5", fontSize = 18.sp)
                                 }
 
@@ -184,7 +184,10 @@ fun HomeScreen(navController: NavHostController) {
                                     Text("Start")
                                 }
 
-                                OutlinedButton(onClick = { viewModel.adjustTime(5) }) {
+                                OutlinedButton(onClick = {
+
+                                    viewModel.adjustTime(if(viewModel.selectedMinutes.value==1L) 4 else 5)
+                                }) {
                                     Text("+5", fontSize = 18.sp)
                                 }
                             }
