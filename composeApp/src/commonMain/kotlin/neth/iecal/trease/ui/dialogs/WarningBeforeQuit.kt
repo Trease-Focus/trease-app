@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import neth.iecal.trease.Constants
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
 import org.jetbrains.compose.resources.painterResource
 import trease.composeapp.generated.resources.Res
@@ -51,14 +52,12 @@ fun WarningBeforeQuit(
     val timeRemaining by viewModel.remainingSeconds.collectAsState()
     val goalFocus by viewModel.selectedMinutes.collectAsState()
 
-    // Logic to calculate elapsed time
     val elapsedSeconds = (goalFocus * 60L) - timeRemaining
     val elapsedFormatted = viewModel.formatTime(elapsedSeconds)
 
-    // Validation State
     var typeText by remember { mutableStateOf("") }
-    val quitterText by remember { mutableStateOf("I am nub") }
-    val isMatch = typeText == quitterText
+    val quitterText by remember { mutableStateOf(Constants.default_quitter_text) }
+    val isMatch = typeText.equals(quitterText, ignoreCase = true)
 
     Dialog(onDismissRequest = { onDismissed() }) {
         Card(

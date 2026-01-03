@@ -66,7 +66,6 @@ fun AppInfoDialog(onDismiss: () -> Unit) {
                 Spacer(Modifier.size(8.dp))
 
 
-
                 Text("I’m Nethical, the 17-year-old developer behind Digipaws, Questphone, and Trease.\n" +
                         "\n" +
                         "I was tired of seeing essential tools locked behind greedy paywalls, so I built these free, open-source alternatives to empower masses.\n" +
