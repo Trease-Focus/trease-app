@@ -63,15 +63,15 @@ fun HomeScreen(navController: NavHostController) {
         if (isTreeSelectionVisible) {
             GrowTreeBottomSheet(
                 onDismiss = { viewModel.toggleIsTreeSelectionVisible() },
-                onSelected = {
+                onAddToCanvas = {
                     viewModel.selectTree(it)
                     viewModel.toggleIsTreeSelectionVisible()
                 },
                 onShowWitheredTrees = {
                     viewModel.toggleIsTreeSelectionVisible()
                     viewModel.toggleIsWitheredTreeSelectionVisible()
-
-                }
+                },
+                viewModel
             )
         }
 

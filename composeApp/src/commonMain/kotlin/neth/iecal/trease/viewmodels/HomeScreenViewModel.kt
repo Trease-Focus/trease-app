@@ -212,6 +212,10 @@ class HomeScreenViewModel : ViewModel() {
         }
 
     }
+    suspend fun useCoins(value:Int){
+        coins.value -= value
+        coinManager.removeCoins(value)
+    }
     fun cleanTimerSession(){
         _timerStatus.value = if(_timerStatus.value == TimerStatus.HAS_QUIT)
             TimerStatus.POST_QUIT else TimerStatus.POST_WIN
