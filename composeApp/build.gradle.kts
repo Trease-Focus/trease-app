@@ -59,6 +59,8 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation("org.jetbrains.androidx.navigation:navigation-compose:2.9.1")
+            implementation("org.jetbrains.compose.material:material-icons-extended:1.7.3")
+            implementation("org.jetbrains.compose.material:material-icons-core:1.7.3")
 
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor)
@@ -70,6 +72,8 @@ kotlin {
 
             implementation(project.dependencies.platform("io.github.jan-tennert.supabase:bom:3.2.6"))
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+
+            implementation(project(":appintro"))
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

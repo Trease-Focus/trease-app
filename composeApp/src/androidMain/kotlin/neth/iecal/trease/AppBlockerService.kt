@@ -1,12 +1,7 @@
 package neth.iecal.trease
 
 import android.annotation.SuppressLint
-import android.app.AlarmManager
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.Service
+import android.app.*
 import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.BroadcastReceiver
@@ -14,11 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
-import android.os.Build
-import android.os.Handler
-import android.os.IBinder
-import android.os.Looper
-import android.os.SystemClock
+import android.os.*
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
@@ -26,8 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Date
-import kotlin.text.get
+import nethical.questphone.data.AppInfo
 
 class AppBlockerService : Service() {
 
@@ -280,14 +270,10 @@ class AppBlockerService : Service() {
 
     private fun refreshHomeScreenOverlay() {
         if (isOverlayActive && currentLockedPackage != null) {
-            val currentIntent = Intent(this, MainActivity::class.java)
-            currentIntent.addFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-            )
-            currentIntent.putExtra("locked_package", currentLockedPackage)
-            startActivity(currentIntent)
+            val startMain = Intent(Intent.ACTION_MAIN)
+            startMain.addCategory(Intent.CATEGORY_HOME)
+            startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(startMain)
         }
     }
 
@@ -348,14 +334,14 @@ class AppBlockerService : Service() {
             val result = reloadApps(pm, applicationContext)
 
             if (result.isSuccess) {
-                var allApps = result.getOrDefault(emptyList())
+                var allApps = result.getOrDefault(emptyList<AppInfo>())
                 val keyboardApps = getKeyboards(applicationContext)
 
-                // Filter out exceptions, keyboard, and self
                 allApps = allApps.filter {
-                    !AppBlockerServiceInfo.deepFocus.exceptionApps.contains(it.packageName) &&
-                            !keyboardApps.contains(it.packageName) &&
-                            it.packageName != "neth.iecal.questphone"
+                    val isException = AppBlockerServiceInfo.deepFocus.exceptionApps.contains(it.packageName)
+                    val isKeyboard = keyboardApps.contains(it.packageName)
+                    val isSelf = it.packageName == packageName
+                    !isException && !isKeyboard && !isSelf
                 }
 
                 withContext(Dispatchers.Main) {
@@ -397,13 +383,15 @@ class AppBlockerService : Service() {
             if (intent == null) return
             when (intent.action) {
                 INTENT_ACTION_START_DEEP_FOCUS -> {
-                    AppBlockerServiceInfo.deepFocus.exceptionApps =
-                        intent.getStringArrayListExtra("exception")?.toHashSet() ?: hashSetOf()
+                    val receivedApps = intent.getStringArrayListExtra("exception")?.toHashSet() ?: hashSetOf()
+                    Log.d(TAG, "Received exception apps from broadcast: $receivedApps")
+
+                    AppBlockerServiceInfo.deepFocus.exceptionApps = receivedApps
                     AppBlockerServiceInfo.deepFocus.isRunning = true
                     val duration = intent.getLongExtra("duration", 0L)
                     AppBlockerServiceInfo.deepFocus.duration = duration
 
-                    Log.d(TAG, "Starting deep focus for ${duration}ms")
+                    Log.d(TAG, "Starting deep focus for ${duration}ms with ${AppBlockerServiceInfo.deepFocus.exceptionApps.size} exception apps")
 
                     // 1. Lock apps strictly
                     turnDeepFocus()
@@ -448,9 +436,8 @@ class AppBlockerService : Service() {
     }
 
     private fun startCooldownTimer(packageName: String, duration: Long) {
-        // Prevent overlapping timers for the same package
         if (timerRunningForPackage == packageName) return
-        stopCooldownTimer() // Stop previous timer before starting new one
+        stopCooldownTimer()
 
         val startTime = SystemClock.uptimeMillis()
         val endTime = startTime + duration
