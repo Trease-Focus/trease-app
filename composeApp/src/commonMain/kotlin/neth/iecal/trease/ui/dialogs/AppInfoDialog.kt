@@ -52,7 +52,7 @@ fun AppInfoDialog(onDismiss: () -> Unit) {
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Trease",
+                        text = "Donate to Trease",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="accessibility_service_description">Blocks all apps except selected ones in the trease app when
+        focusing. \n\nAll your data remains on the device and is never shared to anyone.
+    </string>
+</resources>
