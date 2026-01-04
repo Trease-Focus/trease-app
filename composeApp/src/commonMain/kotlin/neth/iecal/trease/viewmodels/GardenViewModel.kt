@@ -76,7 +76,7 @@ class GardenViewModel: ViewModel() {
         val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
         val yesterday = today.minus(DatePeriod(days = 1))
 
-        val latestDate = dates.first()
+        val latestDate = dates.firstOrNull()
 
         if (latestDate != today && latestDate != yesterday) {
             return 0
