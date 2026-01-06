@@ -253,7 +253,7 @@ class AppBlockerService : Service() {
         return NotificationCompat.Builder(this, NOTIF_CHANNEL_ID)
             .setContentTitle("Trease Deep Focus")
             .setContentText("Initializing...")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.grid)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .setOnlyAlertOnce(true)

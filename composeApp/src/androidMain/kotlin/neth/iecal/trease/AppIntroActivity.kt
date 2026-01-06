@@ -57,7 +57,7 @@ fun AppIntroScreen() {
         IntroPage(
             title = "Trease",
             description = "Trease helps you focus",
-            painter = painterResource(R.drawable.ic_launcher_foreground),
+            painter = painterResource(R.drawable.grid),
             backgroundColor = Color(0xFF24623C),
             contentColor = Color.White,
             onNext = { true }
