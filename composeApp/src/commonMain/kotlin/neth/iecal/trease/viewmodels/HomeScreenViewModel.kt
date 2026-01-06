@@ -11,11 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import neth.iecal.trease.data.AllowedAppsRepository
 import neth.iecal.trease.models.FocusStats
 import neth.iecal.trease.models.TimerStatus
 import neth.iecal.trease.models.TreeData
-import nethical.questphone.data.AppInfo
+import neth.iecal.trease.onForceStopFocus
 import neth.iecal.trease.utils.CacheManager
 import neth.iecal.trease.utils.CoinManager
 import neth.iecal.trease.utils.TreeStatsLodger
@@ -66,14 +65,6 @@ class HomeScreenViewModel : ViewModel() {
     val currentTreeSeedVariant : StateFlow<Int> = _currentTreeSeedVariant.asStateFlow()
 
     var treeList : MutableStateFlow<List<TreeData>> = MutableStateFlow(emptyList())
-    var repository: AllowedAppsRepository? = null
-    private val _showAppSelection = MutableStateFlow(false)
-    val showAppSelection = _showAppSelection.asStateFlow()
-    private val _installedApps = MutableStateFlow<List<AppInfo>>(emptyList())
-    val installedApps = _installedApps.asStateFlow()
-    private val _selectedApps = MutableStateFlow<Set<String>>(emptySet())
-    val selectedApps = _selectedApps.asStateFlow()
-
     init {
         viewModelCoroutineScope.launch {
             coins.value = coinManager.reloadCoins()
@@ -133,6 +124,7 @@ class HomeScreenViewModel : ViewModel() {
             // stop the timer as user quit
             _timerStatus.value = TimerStatus.HAS_QUIT
             stopTimer()
+            onForceStopFocus()
         }
     }
 
@@ -209,7 +201,7 @@ class HomeScreenViewModel : ViewModel() {
                         selectedTree.value?.id ?: "tree",
                         timerStatus.value == TimerStatus.HAS_QUIT,
                         treeSeed = currentTreeSeedVariant.value,
-                        )
+                    )
                 }
             )
             selectedWitheredTree.value = null
@@ -219,7 +211,6 @@ class HomeScreenViewModel : ViewModel() {
                 )
                 coins.value = coinManager.reloadCoins()
             }
-            stopAppBlockerService()
         }
 
     }
@@ -249,38 +240,4 @@ class HomeScreenViewModel : ViewModel() {
         val multiplier = if(calculateRarity()) 2 else 1
         return selectedMinutes.value.toInt() * multiplier
     }
-
-    fun onStartPressed() {
-        if (repository != null) {
-            viewModelScope.launch {
-                _installedApps.value = repository!!.getInstalledApps()
-                val loadedPackages = repository!!.getAllowedPackages()
-                _selectedApps.value = loadedPackages
-                _showAppSelection.value = true
-            }
-        } else {
-            toggleTimer()
-        }
-    }
-
-    fun onAppSelectionConfirmed(selected: Set<String>) {
-        viewModelScope.launch {
-            repository?.saveAllowedPackages(selected)
-            _showAppSelection.value = false
-            toggleTimer()
-        }
-    }
-
-    private fun stopAppBlockerService() {
-        repository?.stopBlockerService()
-    }
-
-    fun dismissAppSelection() {
-        _showAppSelection.value = false
-    }
-
-    fun updateSelectedApps(selected: Set<String>) {
-        _selectedApps.value = selected
-    }
-
 }

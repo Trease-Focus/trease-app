@@ -19,13 +19,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.content.PermissionChecker
 import androidx.core.content.PermissionChecker.checkCallingOrSelfPermission
 import androidx.core.content.edit
 import dev.pranav.appintro.AppIntro
 import dev.pranav.appintro.IntroPage
-import neth.iecal.trease.AppBlockerService.Companion.NOTIFICATION_CHANNEL_ID
 import neth.iecal.trease.ui.theme.MainTheme
 
 
@@ -110,19 +108,7 @@ fun AppIntroScreen() {
                         }
                         context.startActivity(intent)
                         false
-                    } else {
-                        val channel = NotificationChannel(
-                            NOTIFICATION_CHANNEL_ID,
-                            "Focus Mode",
-                            NotificationManager.IMPORTANCE_HIGH
-                        )
-                        channel.setDescription("Focus Mode Notifications")
-
-                        val notificationManager = context.getSystemService(NotificationManager::class.java)
-                        notificationManager.createNotificationChannel(channel)
-
-                        true
-                    }
+                    } else { true}
                 }
             )
         } else null,

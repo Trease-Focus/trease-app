@@ -2,20 +2,17 @@ package neth.iecal.trease
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Build
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.zIndex
 import io.github.kdroidfilter.composemediaplayer.SurfaceType
 import io.github.kdroidfilter.composemediaplayer.VideoPlayerState
 import io.github.kdroidfilter.composemediaplayer.VideoPlayerSurface
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.android.Android
 import io.ktor.client.engine.okhttp.OkHttp
+import neth.iecal.trease.ui.dialogs.AppSelectionDialog
+import neth.iecal.trease.utils.AppBlockerManager
+import neth.iecal.trease.viewmodels.HomeScreenViewModel
 import okio.FileSystem
 import java.io.File
 
@@ -65,4 +62,18 @@ actual fun PlatformVideoPlayer(state: VideoPlayerState, modifier: Modifier) {
         modifier = modifier,
         surfaceType = SurfaceType.TextureView
     )
+}
+
+@Composable
+actual fun FocusStarterDialog(
+    viewModel: HomeScreenViewModel,
+    onConfirm: () -> Unit,
+    onDismissed: () -> Unit
+) {
+    AppSelectionDialog(viewModel, onConfirm = onConfirm,onDismissed)
+}
+
+actual fun onForceStopFocus() {
+    val appBlockerManager = AppBlockerManager(TreaseContext.context.applicationContext)
+    appBlockerManager.stopService()
 }

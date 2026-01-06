@@ -1,6 +1,7 @@
-package nethical.questphone.data
+package neth.iecal.trease.data
 
 import kotlinx.serialization.Serializable
+
 
 /**
  * Represents information about an app.
@@ -11,5 +12,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AppInfo(
     val name: String,
-    val packageName: String
+    val packageName: String,
 )

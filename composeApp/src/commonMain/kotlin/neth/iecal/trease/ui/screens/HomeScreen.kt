@@ -23,6 +23,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import neth.iecal.trease.FocusStarterDialog
 import neth.iecal.trease.Garden
 import neth.iecal.trease.GardenFullScreen
 import neth.iecal.trease.models.TimerStatus
@@ -30,7 +31,6 @@ import neth.iecal.trease.ui.bottomsheet.GrowTreeBottomSheet
 import neth.iecal.trease.ui.bottomsheet.WitheredTreeSheet
 import neth.iecal.trease.ui.components.TreeGrowthPlayer
 import neth.iecal.trease.ui.dialogs.AppInfoDialog
-import neth.iecal.trease.ui.dialogs.AppSelectionDialog
 import neth.iecal.trease.ui.dialogs.WarningBeforeQuit
 import neth.iecal.trease.ui.dialogs.YouLost
 import neth.iecal.trease.ui.dialogs.YouWon
@@ -42,14 +42,10 @@ import trease.composeapp.generated.resources.coin
 import trease.composeapp.generated.resources.grid
 import trease.composeapp.generated.resources.stats
 
-@Composable
-expect fun initializeRepository(viewModel: HomeScreenViewModel)
-
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavHostController) {
     val viewModel = viewModel { HomeScreenViewModel() }
-    initializeRepository(viewModel)
     val remainingSeconds by viewModel.remainingSeconds.collectAsStateWithLifecycle()
     val progress by viewModel.progress.collectAsStateWithLifecycle()
     val status by viewModel.timerStatus.collectAsStateWithLifecycle()
@@ -59,12 +55,12 @@ fun HomeScreen(navController: NavHostController) {
     val coins by viewModel.coins.collectAsStateWithLifecycle()
     var isShowQuitWarningDialog by remember { mutableStateOf(false) }
     var showAppInfoDialog by remember { mutableStateOf(false) }
-    val showAppSelection by viewModel.showAppSelection.collectAsStateWithLifecycle()
-    val installedApps by viewModel.installedApps.collectAsStateWithLifecycle()
-    val selectedApps by viewModel.selectedApps.collectAsStateWithLifecycle()
+
+    var isShowStartDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        contentWindowInsets = WindowInsets.displayCutout
     ) { paddingValues ->
 
         if (isTreeSelectionVisible) {
@@ -98,19 +94,13 @@ fun HomeScreen(navController: NavHostController) {
                 showAppInfoDialog = false
             }
         }
-
-        if (showAppSelection) {
-            AppSelectionDialog(
-                installedApps = installedApps,
-                selectedApps = selectedApps,
-                onConfirm = {
-                    viewModel.onAppSelectionConfirmed(it)
-                            },
-                onDismiss = { viewModel.dismissAppSelection() },
-                onSelectionChange = { viewModel.updateSelectedApps(it) }
-            )
+        if(isShowStartDialog) {
+            FocusStarterDialog(viewModel,onConfirm = {
+                viewModel.toggleTimer()
+            }, onDismissed = {
+                isShowStartDialog = false
+            })
         }
-
         Box(Modifier.fillMaxSize()) {
             if(status != TimerStatus.Running) {
                 TopAppBar(
@@ -250,9 +240,7 @@ fun HomeScreen(navController: NavHostController) {
                                 }
 
                                 Button(
-                                    onClick = {
-                                        viewModel.onStartPressed()
-                                    },
+                                    onClick = {isShowStartDialog = true },
                                 ) {
                                     Text("Start")
                                 }

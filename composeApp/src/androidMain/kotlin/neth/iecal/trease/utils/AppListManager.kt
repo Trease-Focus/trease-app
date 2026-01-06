@@ -1,4 +1,4 @@
-package neth.iecal.trease
+package neth.iecal.trease.utils
 
 import android.content.Context
 import android.content.Intent
@@ -9,7 +9,7 @@ import androidx.core.content.edit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import nethical.questphone.data.AppInfo
+import neth.iecal.trease.data.AppInfo
 
 
 // Cache the app list in SharedPreferences
