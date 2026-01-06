@@ -1,76 +1,77 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM).
+<div align="center">
 
-* [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./composeApp/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./composeApp/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./composeApp/src/jvmMain/kotlin)
-    folder is the appropriate location.
+  <img src="fastlane/metadata/android/en-US/images/6.png" width="100%" alt="Trease Cover" style="border-radius: 10px;"/>
+  <h1>Trease</h1>
 
-* [/iosApp](./iosApp/iosApp) contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+  <p>
+    <strong>Cultivate focus. Reclaim your time.</strong>
+  </p>
 
-### Build and Run Android Application
+  <p>
+    An open-source, cross-platform sanctuary for deep work.
+  </p>
 
-To build and run the development version of the Android app, use the run configuration from the run widget
-in your IDE’s toolbar or build it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:assembleDebug
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:assembleDebug
-  ```
+  <p>
+    <a href="#download"><strong>Download</strong></a> ·
+    <a href="#features"><strong>Features</strong></a> ·
+    <a href="#contributing"><strong>Contributing</strong></a>
+  </p>
 
-### Build and Run Desktop (JVM) Application
+  <br />
 
-To build and run the development version of the desktop app, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:run
-  ```
+  <img src="https://img.shields.io/badge/License-GNU-black?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/badge/Built%20with-Kotlin%20Multiplatform-black?style=flat-square" alt="Tech Stack" />
+  <img src="https://img.shields.io/badge/Status-Active-black?style=flat-square" alt="Status" />
 
-### Build and Run Web Application
+</div>
 
-To build and run the development version of the web app, use the run configuration from the run widget
-in your IDE's toolbar or run it directly from the terminal:
-- for the Wasm target (faster, modern browsers):
-  - on macOS/Linux
-    ```shell
-    ./gradlew :composeApp:wasmJsBrowserDevelopmentRun
-    ```
-  - on Windows
-    ```shell
-    .\gradlew.bat :composeApp:wasmJsBrowserDevelopmentRun
-    ```
-- for the JS target (slower, supports older browsers):
-  - on macOS/Linux
-    ```shell
-    ./gradlew :composeApp:jsBrowserDevelopmentRun
-    ```
-  - on Windows
-    ```shell
-    .\gradlew.bat :composeApp:jsBrowserDevelopmentRun
-    ```
+<br />
 
-### Build and Run iOS Application
+## About
 
-To build and run the development version of the iOS app, use the run configuration from the run widget
-in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+**Trease** is an open-source focus tool.
 
+When you want to focus, plant a seed. As time passes, the seed grows into a tree. However, if you cannot resist the temptation of using your phone and leave the app, your tree will wither.
+
+> "The best time to plant a tree was 20 years ago. The second best time is now."
+
+## Features
+
+Trease is built with simplicity, privacy, and performance in mind using Kotlin Multiplatform.
+
+* **Unified Experience:** A single, native codebase providing fluid performance on Android, Linux, Windows, iOS.
+* **App Blocker:**  Block distractions when focusing (only available on android rn )
+* **Detailed Analytics:** Insightful charts to track your focus distribution over weeks and months.
+* **Visual Forest:** Watch your forest grow as you accumulate productive hours.
+* **Open Source:** No hidden tracking, no ads, and completely transparent code.
+
+## Visuals
+
+<div align="center">
+  <img src="fastlane/metadata/android/en-US/images/1.png" width="19%" alt="Screen 1" />
+  <img src="fastlane/metadata/android/en-US/images/2.png" width="19%" alt="Screen 2" />
+  <img src="fastlane/metadata/android/en-US/images/3.png" width="19%" alt="Screen 3" />
+  <img src="fastlane/metadata/android/en-US/images/4.png" width="19%" alt="Screen 4" />
+  <img src="fastlane/metadata/android/en-US/images/5.png" width="19%" alt="Screen 5" />
+</div>
+
+## Download
+
+Trease can be downloaded by installing the specific executable for your device from github release.
+[Github Release](https://github.com/Trease-Focus/trease-app/releases)
+## Development
+
+Trease is built using **Kotlin Multiplatform (KMP)** and **Compose Multiplatform**.
+
+## Contributing
+
+We welcome contributions from the community. Whether it is a bug fix, a new feature, or design improvements, your help is appreciated.
+
+
+## License
+
+Trease is open-source software licensed under the [GNU License](LICENSE).
+All of trease artworks is licensed under the same license too.
 ---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
-[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
-
-We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public Slack channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
-If you face any issues, please report them on [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP).
+Made by [Nethical](https://github.com/nethical6) 
