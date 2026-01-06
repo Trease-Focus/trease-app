@@ -6,7 +6,7 @@ object Constants {
     val preOwnedTrees = listOf("tree")
 
     var default_quitter_text =
-        "I am walking away from my promises. I admit my comfort is worth more than my future. I choose to be mediocre."
+        "I am walking away from my promises."
     init {
         if (isDebugBuild) {
             default_quitter_text = ""

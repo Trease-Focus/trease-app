@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 import neth.iecal.trease.models.FocusStats
 import neth.iecal.trease.models.TimerStatus
@@ -17,6 +18,7 @@ import neth.iecal.trease.models.TreeData
 import neth.iecal.trease.onForceStopFocus
 import neth.iecal.trease.utils.CacheManager
 import neth.iecal.trease.utils.CoinManager
+import neth.iecal.trease.utils.FocusStateManager
 import neth.iecal.trease.utils.TreeStatsLodger
 import neth.iecal.trease.utils.randomBiased
 import kotlin.math.log2
@@ -65,10 +67,23 @@ class HomeScreenViewModel : ViewModel() {
     val currentTreeSeedVariant : StateFlow<Int> = _currentTreeSeedVariant.asStateFlow()
 
     var treeList : MutableStateFlow<List<TreeData>> = MutableStateFlow(emptyList())
+
+    // caches the state if tree is growing or not along so if accidentally system kills the app, user can restart from last progress
+    val focusStateManager = FocusStateManager()
     init {
         viewModelCoroutineScope.launch {
             coins.value = coinManager.reloadCoins()
             reloadTreeList()
+
+            val runDuration = focusStateManager.isRunning()
+            if(runDuration!=null){
+                val isNotOver = runDuration > Clock.System.now().epochSeconds
+                if(isNotOver){
+                    val treeInfo = focusStateManager.getRunningTree()!!
+                    treeInfo.duration -= (runDuration - Clock.System.now().epochSeconds)
+                    selectWitheredTree(treeInfo)
+                }
+            }
         }
     }
     suspend fun reloadTreeList(){
@@ -136,6 +151,13 @@ class HomeScreenViewModel : ViewModel() {
         // We use the current remaining seconds as the "start line" for progress
         val initialSecondsAtStart = _remainingSeconds.value
         timerJob = viewModelScope.launch {
+            focusStateManager.setRunning(Clock.System.now().epochSeconds + _remainingSeconds.value)
+            focusStateManager.setRunningTree(FocusStats(
+                selectedMinutes.value*60,
+                selectedTree.value.id,
+                false,
+                treeSeed = currentTreeSeedVariant.value,
+            ))
             while (_remainingSeconds.value > 0) {
                 delay(1000)
                 _remainingSeconds.value -= 1
@@ -211,6 +233,7 @@ class HomeScreenViewModel : ViewModel() {
                 )
                 coins.value = coinManager.reloadCoins()
             }
+            focusStateManager.setRunning(-1)
         }
 
     }
