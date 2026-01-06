@@ -1,14 +1,9 @@
 package neth.iecal.trease
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.zIndex
 import io.github.kdroidfilter.composemediaplayer.VideoPlayerState
-import io.github.kdroidfilter.composemediaplayer.VideoPlayerSurface
+import neth.iecal.trease.viewmodels.HomeScreenViewModel
 import okio.FileSystem
 
 enum class Platform {
@@ -27,3 +22,8 @@ expect fun PlatformVideoPlayer(state: VideoPlayerState, modifier: Modifier)
 expect fun getCacheDir(): String
 expect fun getPlatformHttpClient(): io.ktor.client.HttpClient
 expect fun getFileSystem(): FileSystem
+
+@Composable
+expect fun FocusStarterDialog(viewModel: HomeScreenViewModel, onConfirm: () -> Unit = {}, onDismissed: () -> Unit = {})
+
+expect fun onForceStopFocus()

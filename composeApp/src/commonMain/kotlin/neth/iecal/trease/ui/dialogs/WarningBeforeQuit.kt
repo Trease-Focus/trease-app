@@ -57,7 +57,7 @@ fun WarningBeforeQuit(
 
     var typeText by remember { mutableStateOf("") }
     val quitterText by remember { mutableStateOf(Constants.default_quitter_text) }
-    val isMatch = typeText.equals(quitterText, ignoreCase = true)
+    val isMatch = typeText.replace(" ","").equals(quitterText.replace(" ",""), ignoreCase = true)
 
     Dialog(onDismissRequest = { onDismissed() }) {
         Card(

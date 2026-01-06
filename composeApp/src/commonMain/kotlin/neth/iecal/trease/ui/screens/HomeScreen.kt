@@ -23,6 +23,7 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import neth.iecal.trease.FocusStarterDialog
 import neth.iecal.trease.Garden
 import neth.iecal.trease.GardenFullScreen
 import neth.iecal.trease.models.TimerStatus
@@ -51,11 +52,11 @@ fun HomeScreen(navController: NavHostController) {
     val isTreeSelectionVisible by viewModel.isTreeSelectionVisible.collectAsStateWithLifecycle()
     val isWitheredTreeSelectionVisible by viewModel.isWitheredTreeSelectionVisible.collectAsStateWithLifecycle()
 
-
-
     val coins by viewModel.coins.collectAsStateWithLifecycle()
     var isShowQuitWarningDialog by remember { mutableStateOf(false) }
     var showAppInfoDialog by remember { mutableStateOf(false) }
+
+    var isShowStartDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -92,6 +93,13 @@ fun HomeScreen(navController: NavHostController) {
             AppInfoDialog{
                 showAppInfoDialog = false
             }
+        }
+        if(isShowStartDialog) {
+            FocusStarterDialog(viewModel,onConfirm = {
+                viewModel.toggleTimer()
+            }, onDismissed = {
+                isShowStartDialog = false
+            })
         }
         Box(Modifier.fillMaxSize()) {
             if(status != TimerStatus.Running) {
@@ -232,7 +240,7 @@ fun HomeScreen(navController: NavHostController) {
                                 }
 
                                 Button(
-                                    onClick = { viewModel.toggleTimer() },
+                                    onClick = {isShowStartDialog = true },
                                 ) {
                                     Text("Start")
                                 }
