@@ -169,7 +169,7 @@ fun HomeScreen(navController: NavHostController) {
                         modifier = Modifier
                             .size(280.dp)
                             .combinedClickable(
-                                enabled = true,
+                                enabled = status != TimerStatus.Running,
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = ripple(false,),
                                 onClick = { viewModel.toggleIsTreeSelectionVisible() }
