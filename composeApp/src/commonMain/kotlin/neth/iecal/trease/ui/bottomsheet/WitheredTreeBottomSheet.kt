@@ -7,6 +7,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -26,6 +29,10 @@ import neth.iecal.trease.models.FocusStats
 import neth.iecal.trease.utils.TreeStatsLodger
 import neth.iecal.trease.utils.getDate
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
+import org.jetbrains.compose.resources.imageResource
+import org.jetbrains.compose.resources.painterResource
+import trease.composeapp.generated.resources.Res
+import trease.composeapp.generated.resources.baseline_info_outline_24
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -86,6 +93,8 @@ private fun WitheredTreeGridView(
     onTreeSelected: (FocusStats) -> Unit,
     onTreeLongPress: (FocusStats) -> Unit
 ) {
+    val uriHandler = LocalUriHandler.current
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -116,6 +125,13 @@ private fun WitheredTreeGridView(
                 key = { it.id }
             ) { tree ->
                 WitheredTreeGridItem(tree, onTreeSelected, onTreeLongPress)
+            }
+            item {
+                Icon(
+                    painterResource(Res.drawable.baseline_info_outline_24), contentDescription = "Add new art",
+                    modifier = Modifier.size(200.dp).combinedClickable(true, onClick =  {
+                        uriHandler.openUri("https://github.com/Trease-Focus/trease-artwork")
+                    }))
             }
         }
     }
