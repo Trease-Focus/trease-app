@@ -48,6 +48,8 @@ kotlin {
 
             implementation(libs.ktor.client.android)
             implementation("io.ktor:ktor-client-okhttp:3.0.1")
+            implementation(project(":appintro"))
+
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -73,7 +75,6 @@ kotlin {
             implementation(project.dependencies.platform("io.github.jan-tennert.supabase:bom:3.2.6"))
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
 
-            implementation(project(":appintro"))
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

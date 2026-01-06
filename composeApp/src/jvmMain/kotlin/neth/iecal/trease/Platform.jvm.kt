@@ -1,12 +1,14 @@
 package neth.iecal.trease
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import io.github.kdroidfilter.composemediaplayer.VideoPlayerState
 import io.github.kdroidfilter.composemediaplayer.VideoPlayerSurface
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
+import neth.iecal.trease.viewmodels.HomeScreenViewModel
 import okio.FileSystem
 import java.io.File
 
@@ -39,4 +41,19 @@ actual fun PlatformVideoPlayer(
         contentScale = ContentScale.Crop,
         modifier = modifier,
     )
+}
+
+@Composable
+actual fun FocusStarterDialog(
+    viewModel: HomeScreenViewModel,
+    onConfirm: () -> Unit,
+    onDismissed: () -> Unit
+) {
+    // Todo: Add blocking to jvm
+    LaunchedEffect(Unit){
+        onConfirm()
+    }
+}
+
+actual fun onForceStopFocus() {
 }
