@@ -76,22 +76,20 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
 
         }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-        }
+
         iosMain.dependencies {
             implementation("io.ktor:ktor-client-darwin:3.0.1")
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
-
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2")
             implementation(libs.ktor.client.java)
             implementation("io.ktor:ktor-client-okhttp:3.0.1")
+
         }
     }
 }
-
 android {
     namespace = "neth.iecal.trease"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -129,9 +127,14 @@ compose.desktop {
         mainClass = "neth.iecal.trease.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            includeAllModules = false
+            modules("java.instrument", "java.management", "jdk.unsupported")
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb,TargetFormat.AppImage)
             packageName = "neth.iecal.trease"
             packageVersion = "1.0.0"
+            buildTypes.release.proguard {
+                isEnabled.set(false)
+            }
         }
     }
 }

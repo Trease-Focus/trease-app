@@ -77,7 +77,7 @@ fun AppSelectionDialog(
 
         val appResult = reloadApps(context.packageManager,context)
         if(appResult.isSuccess) {
-            installedApps = appResult.getOrNull()!!
+            installedApps = appResult.getOrDefault(emptyList())
         }
         installedApps = installedApps.sortedByDescending { currentSelection.contains (it.packageName ) }
 
@@ -85,8 +85,16 @@ fun AppSelectionDialog(
 
         val tempMap = mutableMapOf<String, Drawable>()
         for (info in installedApps) {
-            val icon = try { pm.getApplicationIcon(info.packageName) } catch (e: Exception) { pm.defaultActivityIcon }
-            tempMap[info.packageName] = icon
+            try {
+                val icon = try {
+                    pm.getApplicationIcon(info.packageName)
+                } catch (e: Exception) {
+                    pm.defaultActivityIcon
+                }
+                tempMap[info.packageName] = icon
+            }catch (e:Exception){
+
+            }
         }
         icons = tempMap
     }
@@ -103,7 +111,6 @@ fun AppSelectionDialog(
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Search Bar
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -121,10 +128,15 @@ fun AppSelectionDialog(
                         .fillMaxWidth()
                         .padding(bottom = 16.dp)
                 )
+                Text(
+                    text = "Note that all the selected apps will be immediately killed. Please save all unsaved files before starting the app blocker.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
+                )
 
-                // App List
                 LazyColumn(
-                    modifier = Modifier.heightIn(max = 400.dp) // Prevent dialog from taking full screen
+                    modifier = Modifier.heightIn(max = 400.dp)
                 ) {
                     items(filteredApps, key = { it.packageName }) { app ->
                         val isSelected = currentSelection.contains(app.packageName)

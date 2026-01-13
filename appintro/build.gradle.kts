@@ -9,7 +9,6 @@ plugins {
     alias(libs.plugins.composeHotReload)
 }
 
-
 kotlin {
     androidTarget {
         compilerOptions {
@@ -44,8 +43,6 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
-        }
-        commonMain.dependencies {
             implementation(libs.androidx.core.ktx)
             implementation(libs.material)
 

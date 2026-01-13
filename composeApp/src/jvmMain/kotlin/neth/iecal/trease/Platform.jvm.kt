@@ -8,6 +8,8 @@ import io.github.kdroidfilter.composemediaplayer.VideoPlayerState
 import io.github.kdroidfilter.composemediaplayer.VideoPlayerSurface
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
+import neth.iecal.trease.ui.LinuxAppSelectionDialog
+import neth.iecal.trease.utils.LinuxAppBlocker
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
 import okio.FileSystem
 import java.io.File
@@ -43,17 +45,20 @@ actual fun PlatformVideoPlayer(
     )
 }
 
+
 @Composable
 actual fun FocusStarterDialog(
     viewModel: HomeScreenViewModel,
     onConfirm: () -> Unit,
     onDismissed: () -> Unit
 ) {
-    // Todo: Add blocking to jvm
-    LaunchedEffect(Unit){
-        onConfirm()
-    }
+    LinuxAppSelectionDialog(
+        viewModel = viewModel,
+        onConfirm = onConfirm,
+        onDismiss = onDismissed
+    )
 }
 
 actual fun onForceStopFocus() {
+    LinuxAppBlocker.getInstance().stopBlocking()
 }
