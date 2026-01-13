@@ -35,7 +35,7 @@ fun AppInfoDialog(onDismiss: () -> Unit) {
     Dialog(onDismissRequest = { onDismiss() }) {
         Card(
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface) ,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
@@ -49,7 +49,7 @@ fun AppInfoDialog(onDismiss: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
 
-            ) {
+                ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "Donate to Trease",
@@ -66,15 +66,16 @@ fun AppInfoDialog(onDismiss: () -> Unit) {
                 Spacer(Modifier.size(8.dp))
 
 
-                Text("I’m Nethical, the 17-year-old developer behind Digipaws, Questphone, and Trease.\n" +
-                        "\n" +
-                        "I was tired of seeing essential tools locked behind greedy paywalls, so I built these free, open-source alternatives to empower masses.\n" +
-                        "\n" +
-                        "Your support keeps me independent and ensures this software stays free forever.\n" +
-                        "\n" +
-                        "Support via: PayPal • Patreon • Crypto • Card (GitHub Sponsers) • UPI",
+                Text(
+                    "I’m Nethical, the 17-year-old developer behind Digipaws, Questphone, and Trease.\n" +
+                            "\n" +
+                            "I was tired of seeing essential tools locked behind greedy paywalls, so I built these free, open-source alternatives to empower masses.\n" +
+                            "\n" +
+                            "Your support keeps me independent and ensures this software stays free forever.\n" +
+                            "\n" +
+                            "Support via: PayPal • Patreon • Crypto • Card (GitHub Sponsers) • UPI",
                     textAlign = TextAlign.Center,
-                    )
+                )
                 Button(
                     onClick = { uriHandler.openUri("https://digipaws.life/donate") },
                     modifier = Modifier.fillMaxWidth(),
@@ -90,7 +91,7 @@ fun AppInfoDialog(onDismiss: () -> Unit) {
                         style = MaterialTheme.typography.titleMedium,
                         textAlign = TextAlign.Center,
 
-                    )
+                        )
                 }
 
                 Button(
@@ -108,7 +109,7 @@ fun AppInfoDialog(onDismiss: () -> Unit) {
                         style = MaterialTheme.typography.titleMedium,
                         textAlign = TextAlign.Center,
 
-                    )
+                        )
                 }
 
                 Spacer(Modifier.size(8.dp))
@@ -119,7 +120,7 @@ fun AppInfoDialog(onDismiss: () -> Unit) {
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center,
 
-                )
+                    )
                 OutlinedButton(
                     onClick = { uriHandler.openUri("https://github.com/Trease-Focus/trease-artwork") },
                     modifier = Modifier.fillMaxWidth(),
@@ -135,7 +136,26 @@ fun AppInfoDialog(onDismiss: () -> Unit) {
                         style = MaterialTheme.typography.titleMedium,
                         textAlign = TextAlign.Center,
 
+                        )
+
+
+                }
+                OutlinedButton(
+                    onClick = { uriHandler.openUri("https://github.com/Trease-Focus/trease-app/releases") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     )
+                ) {
+                    Text(
+                        text = "Download Android and Desktop Variant",
+                        modifier = Modifier.padding(vertical = 6.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center,
+
+                        )
                 }
             }
         }

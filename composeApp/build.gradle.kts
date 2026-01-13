@@ -127,6 +127,9 @@ compose.desktop {
         mainClass = "neth.iecal.trease.MainKt"
 
         nativeDistributions {
+            linux {
+                iconFile.set(project.file("composeApp/resources/drawable/grid.png"))
+            }
             includeAllModules = false
             modules("java.instrument", "java.management", "jdk.unsupported")
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb,TargetFormat.AppImage)
