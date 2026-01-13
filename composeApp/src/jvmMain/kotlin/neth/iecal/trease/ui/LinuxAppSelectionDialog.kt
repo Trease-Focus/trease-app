@@ -17,7 +17,10 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import neth.iecal.trease.models.AppInfo
+import neth.iecal.trease.utils.CacheManager
 import neth.iecal.trease.utils.LinuxAppBlocker
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
 
@@ -51,6 +54,13 @@ fun LinuxAppSelectionDialog(
         withContext(Dispatchers.IO) {
             installedApps = LinuxAppBlocker.getInstance().getInstalledApps()
             isLoading = false
+
+            val cacheManager = CacheManager()
+            val rawSelection = cacheManager.readFile("selected-app-selection.txt")
+            currentSelection = if(rawSelection==null)emptySet() else Json.decodeFromString<Set<String>>(rawSelection)
+
+            installedApps = installedApps.sortedByDescending { currentSelection.contains (it.packageName ) }
+
         }
     }
 
@@ -85,7 +95,12 @@ fun LinuxAppSelectionDialog(
                         .padding(bottom = 16.dp)
                 )
 
-                // App List
+                Text(
+                    text = "Note that all the selected apps will be immediately killed. Please save all unsaved files before starting the app blocker.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
+                )
                 if (isLoading) {
                     Box(
                         modifier = Modifier
@@ -161,6 +176,9 @@ fun LinuxAppSelectionDialog(
                             val blocker = LinuxAppBlocker.getInstance()
                             val durationMillis = viewModel.selectedMinutes.value * 60000L
                             blocker.startBlocking(currentSelection, durationMillis)
+
+                            val cacheManager = CacheManager()
+                            cacheManager.saveFile("selected-app-selection.txt",Json.encodeToString(currentSelection))
                         }
                         onDismiss()
                         onConfirm()

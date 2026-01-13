@@ -3,6 +3,7 @@ package neth.iecal.trease.ui.dialogs
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -56,6 +58,7 @@ fun AppSelectionDialog(
     var installedApps by remember { mutableStateOf(listOf<AppInfo>()) }
     var searchQuery by remember { mutableStateOf("") }
 
+    var isLoading by remember {mutableStateOf(true)}
     val filteredApps by remember(searchQuery, installedApps) {
         derivedStateOf {
             if (searchQuery.isBlank()) {
@@ -97,6 +100,7 @@ fun AppSelectionDialog(
             }
         }
         icons = tempMap
+        isLoading = false
     }
 
     AlertDialog(
@@ -128,71 +132,76 @@ fun AppSelectionDialog(
                         .fillMaxWidth()
                         .padding(bottom = 16.dp)
                 )
-                Text(
-                    text = "Note that all the selected apps will be immediately killed. Please save all unsaved files before starting the app blocker.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
-                )
 
-                LazyColumn(
-                    modifier = Modifier.heightIn(max = 400.dp)
-                ) {
-                    items(filteredApps, key = { it.packageName }) { app ->
-                        val isSelected = currentSelection.contains(app.packageName)
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 200.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.heightIn(max = 400.dp)
+                    ) {
+                        items(filteredApps, key = { it.packageName }) { app ->
+                            val isSelected = currentSelection.contains(app.packageName)
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(MaterialTheme.shapes.small)
-                                .clickable {
-                                    currentSelection = if (isSelected) {
-                                        currentSelection - app.packageName
-                                    } else {
-                                        currentSelection + app.packageName
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(MaterialTheme.shapes.small)
+                                    .clickable {
+                                        currentSelection = if (isSelected) {
+                                            currentSelection - app.packageName
+                                        } else {
+                                            currentSelection + app.packageName
+                                        }
                                     }
-                                }
-                                .padding(vertical = 8.dp, horizontal = 4.dp)
-                        ) {
-                            Checkbox(
-                                checked = isSelected,
-                                onCheckedChange = null // Handled by Row clickable for better UX
-                            )
-                            Spacer(modifier = Modifier.padding(8.dp))
-                           Image(
-                                painter = rememberAsyncImagePainter(icons[app.packageName]),
-                                contentDescription = "App Icon",
-                                modifier = Modifier.size(48.dp)
-                            )
-                            Spacer(modifier = Modifier.padding(8.dp))
-                            Column {
+                                    .padding(vertical = 8.dp, horizontal = 4.dp)
+                            ) {
+                                Checkbox(
+                                    checked = isSelected,
+                                    onCheckedChange = null // Handled by Row clickable for better UX
+                                )
+                                Spacer(modifier = Modifier.padding(8.dp))
+                                Image(
+                                    painter = rememberAsyncImagePainter(icons[app.packageName]),
+                                    contentDescription = "App Icon",
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Spacer(modifier = Modifier.padding(8.dp))
+                                Column {
 
-                                Text(
-                                    text = app.name,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                                Text(
-                                    text = app.packageName,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
+                                    Text(
+                                        text = app.name,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = app.packageName,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
                             }
                         }
-                    }
 
-                    if (filteredApps.isEmpty()) {
-                        item {
-                            Text(
-                                text = "No apps found",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(16.dp)
-                            )
+                        if (filteredApps.isEmpty()) {
+                            item {
+                                Text(
+                                    text = "No apps found",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            }
                         }
                     }
                 }
