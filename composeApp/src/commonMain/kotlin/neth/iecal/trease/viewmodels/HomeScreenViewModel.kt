@@ -12,11 +12,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
+import neth.iecal.trease.getCacheManager
 import neth.iecal.trease.models.FocusStats
 import neth.iecal.trease.models.TimerStatus
 import neth.iecal.trease.models.TreeData
 import neth.iecal.trease.onForceStopFocus
-import neth.iecal.trease.utils.CacheManager
 import neth.iecal.trease.utils.CoinManager
 import neth.iecal.trease.utils.FocusStateManager
 import neth.iecal.trease.utils.TreeStatsLodger
@@ -87,7 +87,7 @@ class HomeScreenViewModel : ViewModel() {
         }
     }
     suspend fun reloadTreeList(){
-        val cacheManager = CacheManager()
+        val cacheManager = getCacheManager()
         cacheManager.readFile("tree.json")?.let {
             treeList.value = Json.decodeFromString(it)
         }

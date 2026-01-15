@@ -10,8 +10,10 @@ import io.github.kdroidfilter.composemediaplayer.VideoPlayerState
 import io.github.kdroidfilter.composemediaplayer.VideoPlayerSurface
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
+import neth.iecal.trease.interfaces.CacheManager
 import neth.iecal.trease.ui.dialogs.AppSelectionDialog
 import neth.iecal.trease.utils.AppBlockerManager
+import neth.iecal.trease.utils.DefaultCacheManager
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
 import okio.FileSystem
 import java.io.File
@@ -76,4 +78,8 @@ actual fun FocusStarterDialog(
 actual fun onForceStopFocus() {
     val appBlockerManager = AppBlockerManager(TreaseContext.context.applicationContext)
     appBlockerManager.stopService()
+}
+
+actual fun getCacheManager(): CacheManager {
+    return DefaultCacheManager()
 }

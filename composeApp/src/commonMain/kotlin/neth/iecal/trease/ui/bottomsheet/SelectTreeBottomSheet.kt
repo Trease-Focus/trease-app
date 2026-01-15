@@ -32,9 +32,9 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import neth.iecal.trease.Constants
 import neth.iecal.trease.api.TreeRepository
+import neth.iecal.trease.getCacheManager
 import neth.iecal.trease.models.TreeData
 import neth.iecal.trease.models.TreeUiState
-import neth.iecal.trease.utils.CacheManager
 import neth.iecal.trease.utils.TreePurchaseManager
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
 
@@ -57,7 +57,7 @@ fun GrowTreeBottomSheet(
         val treePurchaseManager = TreePurchaseManager()
         purchasedTrees = treePurchaseManager.loadAllPurchasedTrees()
 
-        val cacheManager = CacheManager()
+        val cacheManager = getCacheManager()
         cacheManager.readFile("tree.json")?.let {
             uiState = TreeUiState.Success(Json.decodeFromString(it))
         }

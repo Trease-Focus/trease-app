@@ -2,10 +2,11 @@ package neth.iecal.trease.utils
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import neth.iecal.trease.getCacheManager
 import neth.iecal.trease.models.FocusStats
 
 class TreeStatsLodger {
-    val cacheManager = CacheManager()
+    val cacheManager = getCacheManager()
 
     suspend fun injectStats(focusStats: FocusStats) {
         val statsRaw = cacheManager.readFile("${getCurrentMonthYear()}.json")

@@ -1,7 +1,9 @@
 package neth.iecal.trease.utils
 
+import neth.iecal.trease.getCacheManager
+
 class CoinManager(){
-    val cacheManager = CacheManager()
+    val cacheManager = getCacheManager()
 
 
     suspend fun addCoins(value: Int) {

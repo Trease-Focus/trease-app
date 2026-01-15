@@ -1,25 +1,20 @@
 package neth.iecal.trease.utils
 
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsChannel
-import io.ktor.utils.io.core.isEmpty
-import io.ktor.utils.io.core.readBytes
-import io.ktor.utils.io.readRemaining
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import neth.iecal.trease.getCacheDir
 import neth.iecal.trease.getFileSystem
-import neth.iecal.trease.getPlatformHttpClient
+import neth.iecal.trease.interfaces.CacheManager
 import okio.Path.Companion.toPath
 import okio.buffer
 import okio.use
 
-class CacheManager {
+class DefaultCacheManager: CacheManager {
 
     private val fileSystem = getFileSystem()
 
 
-    suspend fun saveFile(
+    override suspend fun saveFile(
         fileName: String,
         content: String
     ) {
@@ -38,7 +33,7 @@ class CacheManager {
         }
     }
 
-    suspend fun readFile(fileName: String): String? {
+    override suspend fun readFile(fileName: String): String? {
         return withContext(Dispatchers.Main) {
             val filePath = getCacheDir()
                 .toPath()

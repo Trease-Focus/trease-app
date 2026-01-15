@@ -4,9 +4,10 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.internal.decodeStringToJsonTree
 import neth.iecal.trease.Constants
+import neth.iecal.trease.getCacheManager
 
 class TreePurchaseManager(){
-    val cacheManager = CacheManager()
+    val cacheManager = getCacheManager()
 
     suspend fun addTree(treeId: String) {
         val trees = loadAllPurchasedTrees().toMutableList()

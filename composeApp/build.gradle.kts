@@ -39,9 +39,13 @@ kotlin {
     wasmJs {
         browser()
         binaries.executable()
+
     }
     
     sourceSets {
+        val wasmJsMain by getting {
+            resources.srcDir("src/wasmJsMain/resources")
+        }
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
@@ -80,14 +84,17 @@ kotlin {
         iosMain.dependencies {
             implementation("io.ktor:ktor-client-darwin:3.0.1")
         }
-        jvmMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutinesSwing)
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2")
-            implementation(libs.ktor.client.java)
-            implementation("io.ktor:ktor-client-okhttp:3.0.1")
+        wasmJsMain.dependencies {
+            implementation(compose.runtime)
+            implementation(compose.ui)
+            implementation(compose.foundation)
 
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-wasm-js:1.10.2")
+            implementation("io.ktor:ktor-client-core:3.0.1")
+            implementation("com.squareup.okio:okio:3.9.0")
+            implementation("com.squareup.okio:okio-fakefilesystem:3.9.0")
         }
+
     }
 }
 android {
@@ -141,3 +148,5 @@ compose.desktop {
         }
     }
 }
+
+
