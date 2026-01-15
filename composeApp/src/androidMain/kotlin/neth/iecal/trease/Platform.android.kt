@@ -11,6 +11,7 @@ import io.github.kdroidfilter.composemediaplayer.VideoPlayerSurface
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import neth.iecal.trease.interfaces.CacheManager
+import neth.iecal.trease.services.ServiceState
 import neth.iecal.trease.ui.dialogs.AppSelectionDialog
 import neth.iecal.trease.utils.AppBlockerManager
 import neth.iecal.trease.utils.DefaultCacheManager
@@ -82,4 +83,8 @@ actual fun onForceStopFocus() {
 
 actual fun getCacheManager(): CacheManager {
     return DefaultCacheManager()
+}
+
+actual fun isBlockerRunning(): Boolean {
+    return ServiceState.isRunning
 }

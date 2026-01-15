@@ -6,4 +6,5 @@ interface CacheManager {
         content: String
     )
     suspend fun readFile(fileName: String): String?
+    suspend fun doesFileExist(): Boolean
 }

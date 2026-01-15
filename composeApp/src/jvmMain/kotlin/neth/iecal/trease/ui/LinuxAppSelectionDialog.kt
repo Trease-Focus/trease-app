@@ -174,10 +174,10 @@ fun LinuxAppSelectionDialog(
                     if (currentSelection.isNotEmpty()) {
                         coroutineScope.launch {
                             val blocker = LinuxAppBlocker.getInstance()
-                            val durationMillis = viewModel.selectedMinutes.value * 60000L
+                            val durationMillis = viewModel.remainingSeconds.value * 1_000L
                             blocker.startBlocking(currentSelection, durationMillis)
 
-                            val cacheManager = CacheManager()
+                            val cacheManager = neth.iecal.trease.interfaces.CacheManager()
                             cacheManager.saveFile("selected-app-selection.txt",Json.encodeToString(currentSelection))
                         }
                         onDismiss()

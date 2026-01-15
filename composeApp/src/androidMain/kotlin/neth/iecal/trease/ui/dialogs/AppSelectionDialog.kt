@@ -213,7 +213,7 @@ fun AppSelectionDialog(
                     coroutineScope.launch {
                         val appBlockManager = AppBlockerManager(context)
                         appBlockManager.saveAllowedPackages(currentSelection)
-                        appBlockManager.startAppBlockerService(currentSelection,viewModel.selectedMinutes.value * 60000)
+                        appBlockManager.startAppBlockerService(currentSelection,viewModel.remainingSeconds.value * 1_000)
                     }
                     onDismiss()
                     onConfirm()

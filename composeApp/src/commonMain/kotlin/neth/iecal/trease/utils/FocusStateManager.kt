@@ -11,7 +11,7 @@ class FocusStateManager(){
     suspend fun setRunning(oversAt:Long) {
         cacheManager.saveFile("running_over_at",oversAt.toString())
     }
-    suspend fun isRunning():Long? {
+    suspend fun getRunOverAt():Long? {
         return cacheManager.readFile("running_over_at")?.toLong()
     }
 

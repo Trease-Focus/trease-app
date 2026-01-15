@@ -32,6 +32,10 @@ class DefaultCacheManager: CacheManager {
             }
         }
     }
+    override suspend fun doesFileExist():Boolean {
+        val cachePath = getCacheDir().toPath()
+        return fileSystem.exists(cachePath)
+    }
 
     override suspend fun readFile(fileName: String): String? {
         return withContext(Dispatchers.Main) {

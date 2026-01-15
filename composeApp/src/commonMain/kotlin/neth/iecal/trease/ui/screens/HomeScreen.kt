@@ -9,6 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,10 +58,22 @@ fun HomeScreen(navController: NavHostController) {
     var showAppInfoDialog by remember { mutableStateOf(false) }
 
     var isShowStartDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
+    val snackBarMessage by viewModel.snackBarMessage.collectAsStateWithLifecycle()
+
+    LaunchedEffect(snackBarMessage){
+        if(snackBarMessage!=null){
+            snackbarHostState.showSnackbar(
+                message = snackBarMessage!!,
+            )
+            viewModel.hideSnackbar()
+        }
+    }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        contentWindowInsets = WindowInsets.displayCutout
+        contentWindowInsets = WindowInsets.displayCutout,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
     ) { paddingValues ->
 
         if (isTreeSelectionVisible) {

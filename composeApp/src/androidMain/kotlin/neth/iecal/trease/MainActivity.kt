@@ -13,7 +13,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        TreaseContext.init(this)
+        TreaseContext.init(applicationContext)
 
         val prefs = getSharedPreferences("trease_prefs", Context.MODE_PRIVATE)
 

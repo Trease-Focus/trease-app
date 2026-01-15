@@ -2,6 +2,7 @@ package neth.iecal.trease.ui.bottomsheet
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -15,12 +16,10 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,15 +27,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import neth.iecal.trease.Constants
-import neth.iecal.trease.api.TreeRepository
 import neth.iecal.trease.getCacheManager
 import neth.iecal.trease.models.TreeData
 import neth.iecal.trease.models.TreeUiState
 import neth.iecal.trease.utils.TreePurchaseManager
 import neth.iecal.trease.viewmodels.HomeScreenViewModel
+import org.jetbrains.compose.resources.painterResource
+import trease.composeapp.generated.resources.Res
+import trease.composeapp.generated.resources.grid
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -62,10 +62,9 @@ fun GrowTreeBottomSheet(
             uiState = TreeUiState.Success(Json.decodeFromString(it))
         }
 
+        // also refresh the cache
         try {
-            val trees = TreeRepository.fetchTrees().filter { it.id != "weathered" }
-            uiState = TreeUiState.Success(trees)
-            cacheManager.saveFile("tree.json", Json.encodeToString(trees))
+            uiState = TreeUiState.Success(viewModel.fetchTreesFromCdn())
         } catch (e: Exception) {
             if (uiState !is TreeUiState.Success) {
                 uiState = TreeUiState.Error("Unable to load forest: ${e.message}")
@@ -178,6 +177,8 @@ private fun TreeGridView(
     onShowWitheredTrees: () -> Unit,
     purchasedTrees: List<String>
 ) {
+
+    val uriHandler = LocalUriHandler.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -224,6 +225,44 @@ private fun TreeGridView(
                         key = { it.id }
                     ) { tree ->
                         TreeGridItem(tree, onTreeSelected, onTreeLongPress,purchasedTrees.contains(tree.id))
+                    }
+                    item {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .combinedClickable(
+                                    onClick = {
+                                        uriHandler.openUri("https://github.com/Trease-Focus/trease-artwork")
+                                    },
+                                )
+                                .padding(8.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(90.dp)
+                                    .padding(8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(Res.drawable.grid),
+                                    contentDescription = "Add Tree",
+                                    modifier = Modifier.size(50.dp),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
+
+                            Spacer(Modifier.height(8.dp))
+
+                            Text(
+                                text = "Add Tree",
+                                style = MaterialTheme.typography.labelMedium,
+                                textAlign = TextAlign.Center,
+                                minLines = 2,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
                 }
             }

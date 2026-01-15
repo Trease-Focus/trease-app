@@ -30,3 +30,5 @@ expect fun FocusStarterDialog(viewModel: HomeScreenViewModel, onConfirm: () -> U
 expect fun onForceStopFocus()
 
 expect fun getCacheManager(): CacheManager
+
+expect fun isBlockerRunning():Boolean

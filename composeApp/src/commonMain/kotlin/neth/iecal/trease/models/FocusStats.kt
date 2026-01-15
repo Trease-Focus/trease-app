@@ -1,7 +1,6 @@
 package neth.iecal.trease.models
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -14,5 +13,4 @@ data class FocusStats @OptIn(ExperimentalUuidApi::class) constructor(
     val id:String = Uuid.generateV7().toString(),
     val completedOn: Long = kotlin.time.Clock.System.now().toEpochMilliseconds(),
     val treeSeed: Int = 0,
-
     )

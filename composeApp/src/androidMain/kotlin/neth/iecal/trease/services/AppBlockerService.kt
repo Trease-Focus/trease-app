@@ -16,6 +16,8 @@ import kotlinx.coroutines.*
 import neth.iecal.trease.MainActivity
 import neth.iecal.trease.R
 import neth.iecal.trease.data.DeepFocus
+import neth.iecal.trease.utils.FocusStateManager
+import neth.iecal.trease.utils.TreeStatsLodger
 import neth.iecal.trease.utils.getKeyboards
 import neth.iecal.trease.utils.reloadApps
 import java.util.TreeMap
@@ -49,7 +51,7 @@ class AppBlockerService : Service() {
         startForegroundServiceCompat()
         registerBroadcastReceiver()
 
-        if(ServiceState.isRunning) {
+        if (ServiceState.isRunning) {
             startDeepFocus(ServiceState.duration, ServiceState.lockedPackages.toList())
         }
         // Start the main blocking loop
@@ -65,7 +67,10 @@ class AppBlockerService : Service() {
         ServiceState.isRunning = false
         ServiceState.currentLockedPackage = null
         serviceScope.cancel() // Kills all monitoring and timers
-        try { unregisterReceiver(controlReceiver) } catch (_: Exception) {}
+        try {
+            unregisterReceiver(controlReceiver)
+        } catch (_: Exception) {
+        }
         stopForeground(STOP_FOREGROUND_REMOVE)
     }
 
@@ -108,9 +113,11 @@ class AppBlockerService : Service() {
 
         // Bring our activity to front
         val intent = Intent(this, MainActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                    Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP
+            )
             putExtra("locked_package", packageName)
         }
         startActivity(intent)
@@ -168,11 +175,17 @@ class AppBlockerService : Service() {
         ServiceState.lockedPackages.addAll(toLock)
     }
 
-    private fun stopDeepFocus() {
+    private suspend fun stopDeepFocus() {
         ServiceState.lockedPackages.clear()
         ServiceState.isRunning = false
 
-        Toast.makeText(this, "Focus Session Complete", Toast.LENGTH_LONG).show()
+        val focusStatsManager = TreeStatsLodger()
+        val focusStateManager = FocusStateManager()
+        val runningTree = focusStateManager.getRunningTree()
+        if (runningTree != null) {
+            focusStatsManager.injectStats(runningTree.copy(isFailed = false))
+            focusStateManager.setRunning(-1)
+        }
 
         // Kill service completely
         stopSelf()
@@ -205,8 +218,14 @@ class AppBlockerService : Service() {
                     val duration = intent.getLongExtra("duration", 0L)
                     startDeepFocus(duration, exceptions)
                 }
-                ACTION_STOP_DEEP_FOCUS -> stopDeepFocus()
+
+                ACTION_STOP_DEEP_FOCUS -> {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        stopDeepFocus()
+                    }
+                }
             }
+
         }
     }
 

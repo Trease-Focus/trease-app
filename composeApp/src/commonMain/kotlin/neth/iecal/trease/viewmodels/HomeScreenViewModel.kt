@@ -11,8 +11,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import neth.iecal.trease.api.TreeRepository
 import neth.iecal.trease.getCacheManager
+import neth.iecal.trease.isBlockerRunning
 import neth.iecal.trease.models.FocusStats
 import neth.iecal.trease.models.TimerStatus
 import neth.iecal.trease.models.TreeData
@@ -68,24 +71,40 @@ class HomeScreenViewModel : ViewModel() {
 
     var treeList : MutableStateFlow<List<TreeData>> = MutableStateFlow(emptyList())
 
-    // caches the state if tree is growing or not along so if accidentally system kills the app, user can restart from last progress
+    var _snackBarMessage : MutableStateFlow<String?> = MutableStateFlow(null)
+    val snackBarMessage: StateFlow<String?> = _snackBarMessage.asStateFlow()
+    // caches the state if tree is growing or no,so if accidentally system kills the app, user can restart from last progress
     val focusStateManager = FocusStateManager()
     init {
         viewModelCoroutineScope.launch {
+            fetchTreesFromCdn()
             coins.value = coinManager.reloadCoins()
             reloadTreeList()
+            checkNotOverWhileDoze()
 
-            val runDuration = focusStateManager.isRunning()
-            if(runDuration!=null){
-                val isNotOver = runDuration > Clock.System.now().epochSeconds
-                if(isNotOver){
-                    val treeInfo = focusStateManager.getRunningTree()!!
-                    treeInfo.duration -= (runDuration - Clock.System.now().epochSeconds)
-                    selectWitheredTree(treeInfo)
+        }
+    }
+
+    suspend fun checkNotOverWhileDoze(){
+        val runDuration = focusStateManager.getRunOverAt()
+        if(runDuration!=null){
+            val isNotOver = runDuration > Clock.System.now().epochSeconds
+            if(isNotOver){
+                val treeInfo = focusStateManager.getRunningTree()!!
+                val originalDuration = treeInfo.duration
+                treeInfo.duration = (runDuration - Clock.System.now().epochSeconds)
+                selectWitheredTree(treeInfo)
+                if(isBlockerRunning()){
+                    startTimer()
+                    _timerStatus.value = TimerStatus.Running
+                }else{
+                    showSnackbar("There was a system error that stopped the service. Fortunately you can still grow the same tree without losing progress by pressing start.")
                 }
+                _selectedMinutes.value = originalDuration/60
             }
         }
     }
+
     suspend fun reloadTreeList(){
         val cacheManager = getCacheManager()
         cacheManager.readFile("tree.json")?.let {
@@ -101,21 +120,18 @@ class HomeScreenViewModel : ViewModel() {
         }
     }
 
-    fun selectWitheredTree(focusStats: FocusStats){
-        viewModelCoroutineScope.launch {
-            reloadTreeList()
-            selectedWitheredTree.value = focusStats
+    fun  selectWitheredTree(focusStats: FocusStats){
+        selectedWitheredTree.value = focusStats
 
-            _currentTreeSeedVariant.value = focusStats.treeSeed
+        _currentTreeSeedVariant.value = focusStats.treeSeed
 
-            _timerStatus.value = TimerStatus.Idle
-            selectedTree.value = treeList.value.filter { it.id == focusStats.treeId }.first()
+        _timerStatus.value = TimerStatus.Idle
+        selectedTree.value = treeList.value.filter { it.id == focusStats.treeId }.first()
 
-            val newMinutes = focusStats.duration / 60
-            _selectedMinutes.value = newMinutes
-            _remainingSeconds.value = focusStats.duration
-            _progress.value = 1f
-        }
+        val newMinutes = focusStats.duration / 60
+        _selectedMinutes.value = newMinutes
+        _remainingSeconds.value = focusStats.duration
+        _progress.value = 1f
     }
     fun selectTree(treeId: TreeData){
         selectedWitheredTree.value = null
@@ -124,6 +140,12 @@ class HomeScreenViewModel : ViewModel() {
     }
     fun setTimeStatus(status:TimerStatus){
         _timerStatus.value = status
+    }
+    fun showSnackbar(msg:String){
+        _snackBarMessage.value = msg
+    }
+    fun hideSnackbar(){
+        _snackBarMessage.value = null
     }
     fun toggleIsTreeSelectionVisible() {
         _isTreeSelectionVisible.value = !_isTreeSelectionVisible.value
@@ -175,6 +197,12 @@ class HomeScreenViewModel : ViewModel() {
             println("Seed ${currentTreeSeedVariant.value}")
         }
     }
+     suspend fun fetchTreesFromCdn():List<TreeData>{
+        val trees = TreeRepository.fetchTrees().filter { it.id != "weathered" }
+        val cacheManager = getCacheManager()
+        cacheManager.saveFile("tree.json", Json.encodeToString(trees))
+        return trees
+    }
     private suspend fun calculateBias(
         currentFocusDurationInMins: Long
     ): Double {
@@ -210,18 +238,16 @@ class HomeScreenViewModel : ViewModel() {
         viewModelCoroutineScope.launch {
             treeStatsLodger.injectStats(
                 if(selectedWitheredTree.value!=null){
-                    FocusStats(
-                        duration = selectedWitheredTree.value!!.duration,
-                        treeId = selectedWitheredTree.value!!.treeId,
-                        isFailed = timerStatus.value == TimerStatus.HAS_QUIT,
-                        id = selectedWitheredTree.value!!.id,
-                        treeSeed = selectedWitheredTree.value!!.treeSeed,
+                    // As selected tree is a focus stat object too, we just update the value of isFailed and inject it back.
+                    selectedWitheredTree.value!!.copy(
+                        isFailed = timerStatus.value == TimerStatus.HAS_QUIT
                     )
                 }else{
                     FocusStats(
-                        selectedMinutes.value*60,
-                        selectedTree.value?.id ?: "tree",
-                        timerStatus.value == TimerStatus.HAS_QUIT,
+                        duration = selectedMinutes.value*60,
+                        treeId = selectedTree.value.id ?: "tree",
+                        // also btw all withered trees are actually listed from the saved focus stat list on disk.
+                        isFailed = timerStatus.value == TimerStatus.HAS_QUIT,
                         treeSeed = currentTreeSeedVariant.value,
                     )
                 }
