@@ -72,6 +72,7 @@ We welcome contributions from the community. Whether it is a bug fix, a new feat
 
 Trease is open-source software licensed under the [GNU License](LICENSE).
 All of trease artworks is licensed under the same license too.
+
 ---
 
 Made by [Nethical](https://github.com/nethical6) 
